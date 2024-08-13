@@ -7,15 +7,29 @@ import type { IDescribable } from '@/models/administrations'
 import type { IProductDto } from '@/models/products'
 import { categoryService, providerService } from '@/service/adminService.ts'
 import { useService } from '@/service/useService'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { z, type ZodFormattedError } from 'zod'
 import { ProductFormSchema } from './productSchemas'
 import { DialogClose } from 'radix-vue'
-import { productService } from '@/service/productService'
+import { productService, type ServiceResponse } from '@/service/productService'
 
-const { product } = defineProps<{
+const props = defineProps<{
     product?: IProductDto
 }>()
+
+const emit = defineEmits<{
+    success: [p: IProductDto]
+}>()
+
+const isUpdate = computed(() => !!props.product?.id)
+
+const isOpen = ref(false)
+watch(isOpen, (open) => {
+    if (!open) {
+        errors.value = null
+        serviceError.value = ''
+    }
+})
 
 type ProductFormSchemaType = z.infer<typeof ProductFormSchema>
 const errors = ref<ZodFormattedError<ProductFormSchemaType> | null>(null)
@@ -24,32 +38,39 @@ const serviceError = ref('')
 const { data: categories } = useService(categoryService.list)
 const { data: providers } = useService(providerService.list)
 
-const onOpenChange = (open: boolean) => {
-    if (!open) {
-        errors.value = null
-        serviceError.value = ''
-    }
-}
-
 const handleSubmit = async (e: Event) => {
     const form = new FormData(e.target as HTMLFormElement)
 
-    const product = Object.fromEntries(form)
+    const formObject = Object.fromEntries(form)
 
-    const { success, data, error } = ProductFormSchema.safeParse(product)
+    const { success, data, error } = ProductFormSchema.safeParse(formObject)
 
     if (!success) {
         errors.value = error.format()
         return
     }
 
-    const response = await productService.create({
-        ...data,
-    })
+    let response: ServiceResponse<IProductDto>
+
+    console.log('updating', isUpdate)
+    if (isUpdate.value) {
+        response = await productService.update({
+            id: props.product!.id,
+            ...data,
+        })
+    } else {
+        response = await productService.create({
+            ...data,
+        })
+    }
 
     if (!response.success) {
         serviceError.value = response.error.response.message
+        return
     }
+
+    emit('success', response.data)
+    isOpen.value = false
 }
 
 function selectDescribableMapper(items: IDescribable[]): IOption[] {
@@ -62,12 +83,14 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
 
 <template>
     <AppDialog
-        title="Agregar Producto"
+        :title="product ? 'Modificar producto' : 'Agregar producto'"
         description="prueba de descripcion"
-        @update:open="onOpenChange"
+        v-model:open="isOpen"
     >
         <template #trigger>
-            <AppButton> Agregar producto </AppButton>
+            <AppButton>
+                {{ product ? 'Modificar' : 'Agregar producto' }}
+            </AppButton>
         </template>
         <template #content>
             <div v-if="serviceError" class="text-red-600">
@@ -82,7 +105,11 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
                         class="mt-2"
                         :errors="errors?.name?._errors"
                     >
-                        <input name="name" class="border-black border p-1 bg-gray-100 rounded-md" />
+                        <input
+                            name="name"
+                            :value="product?.name"
+                            class="border-black border p-1 bg-gray-100 rounded-md"
+                        />
                     </FormEntry>
                     <FormEntry
                         name="description"
@@ -92,6 +119,7 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
                     >
                         <textarea
                             name="description"
+                            :value="product?.description"
                             rows="3"
                             class="border-black border p-1 bg-gray-100 rounded-md"
                         ></textarea>
@@ -104,6 +132,7 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
                     >
                         <AppSelect
                             :options="selectDescribableMapper(categories?.items ?? [])"
+                            :defaultValue="product?.categoryId"
                             name="categoryId"
                         />
                     </FormEntry>
@@ -115,6 +144,7 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
                     >
                         <AppSelect
                             :options="selectDescribableMapper(providers?.items ?? [])"
+                            :defaultValue="product?.providerId"
                             name="providerId"
                         />
                     </FormEntry>

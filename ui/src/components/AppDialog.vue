@@ -20,7 +20,7 @@
                 <DialogDescription v-if="description" class="mt-3">{{
                     description
                 }}</DialogDescription>
-                <div class="p-4">
+                <div class="p-2">
                     <slot name="content"> </slot>
                 </div>
             </DialogContent>

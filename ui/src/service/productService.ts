@@ -2,7 +2,7 @@ import type { IProductCreateDto, IProductDto, IProductView } from '@/models/prod
 import { pbClient } from './pocketbase'
 import type { ListResult } from 'pocketbase'
 
-type ServiceResponse<T> = ServiceSuccess<T> | ServiceError
+export type ServiceResponse<T> = ServiceSuccess<T> | ServiceError
 
 class ServiceSuccess<T> {
     success: true
@@ -35,6 +35,22 @@ function isClientResponseError(err: any): err is ClientResponseError {
     return err && typeof err.isAbort === 'boolean' && typeof err.originalError === 'object'
 }
 
+async function executeService<T>(promise: Promise<T>): Promise<ServiceResponse<T>> {
+    try {
+        const result = await promise
+
+        return new ServiceSuccess(result)
+    } catch (error) {
+        if (isClientResponseError(error)) {
+            const resp = new ServiceError(error)
+            console.error(resp)
+            return resp
+        } else {
+            throw error
+        }
+    }
+}
+
 type PocketBaseError = {
     code: number
     message: string
@@ -43,6 +59,7 @@ type PocketBaseError = {
 
 interface IProductSerivce {
     list(): Promise<ListResult<IProductView>>
+    get(id: string): Promise<IProductView>
     create(p: IProductCreateDto): Promise<ServiceResponse<IProductDto>>
     update(p: IProductDto): Promise<ServiceResponse<IProductDto>>
 }
@@ -51,32 +68,29 @@ export const productService: IProductSerivce = {
     async list() {
         return pbClient.productsView.getList()
     },
+    async get(id: string) {
+        return pbClient.productsView.getOne(id)
+    },
     async create(p: IProductCreateDto) {
-        try {
-            const result = await pbClient.products.create({
+        const resp = await executeService(
+            pbClient.products.create({
                 name: p.name,
                 description: p.description,
                 category: p.categoryId,
                 provider: p.providerId,
-            })
+            }),
+        )
 
-            return new ServiceSuccess(result)
-        } catch (error) {
-            if (isClientResponseError(error)) {
-                const resp = new ServiceError(error)
-                console.error(resp)
-                return resp
-            } else {
-                throw error
-            }
-        }
+        return resp
     },
     async update(p: IProductDto) {
-        return pbClient.products.update(p.id, {
+        const promise = pbClient.products.update(p.id, {
             name: p.name,
             description: p.description,
             category: p.categoryId,
             provider: p.providerId,
         })
+
+        return executeService(promise)
     },
 }

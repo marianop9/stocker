@@ -1,5 +1,5 @@
 <template>
-    <SelectRoot :name="name" :required="required ?? false" class="">
+    <SelectRoot :name="name" :required="required ?? false" :defaultValue>
         <SelectTrigger
             class="inline-flex min-w-[160px] items-center justify-between rounded px-[15px] h-[35px] gap-[5px] bg-gray-100 outline-none border-black border"
         >
@@ -52,5 +52,6 @@ defineProps<{
     name: string
     placeholder?: string
     required?: boolean
+    defaultValue?: string
 }>()
 </script>

@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import { productService } from '@/service/productService'
 import { useService } from '@/service/useService'
-import { ref } from 'vue'
 import ProductDialog from './ProductDialog.vue'
-import type { IProductView } from '@/models/products'
+import type { IProductDto, IProductView } from '@/models/products'
 import AppButton from '@/components/AppButton.vue'
+import { useRouter } from 'vue-router'
 
 const { loading, data } = useService(productService.list)
 
+const router = useRouter()
 type Column = {
     label: string
     field: keyof IProductView
@@ -19,10 +20,14 @@ const cols: Column[] = [
     { label: 'Proveedor', field: 'providerName' },
     { label: 'Categoria', field: 'categoryName' },
 ]
+
+const onSuccessfulCreate = (p: IProductDto) => {
+    router.push('/products/' + p.id)
+}
 </script>
 
 <template>
-    <table class="w-full">
+    <table class="w-2/3 border-2">
         <thead class="text-left">
             <tr>
                 <th v-for="col in cols" :key="col.field">{{ col.label }}</th>
@@ -35,10 +40,14 @@ const cols: Column[] = [
                     {{ item[col.field] }}
                 </td>
                 <!-- columna de acciones -->
-                <td></td>
+                <td>
+                    <AppButton>
+                        <RouterLink :to="'products/' + item.id">Ver</RouterLink>
+                    </AppButton>
+                </td>
             </tr>
         </tbody>
     </table>
 
-    <ProductDialog />
+    <ProductDialog @success="onSuccessfulCreate" />
 </template>

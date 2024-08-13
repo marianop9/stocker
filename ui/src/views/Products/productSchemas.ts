@@ -14,6 +14,7 @@ const moreThan = (n: number) => `Ingrese un valor mayor a ${n}.`
 const lessThan = (n: number) => `Ingrese un valor menor a ${n}.`
 
 export const ProductFormSchema = z.object({
+    id: z.string().optional(),
     name: z
         .string({ required_error: required('nombre') })
         .min(3, minLength(3))
