@@ -3,8 +3,8 @@ import { productService } from '@/service/productService'
 import { useService } from '@/service/useService'
 import ProductDialog from './ProductDialog.vue'
 import type { IProductDto, IProductView } from '@/models/products'
-import AppButton from '@/components/AppButton.vue'
 import { useRouter } from 'vue-router'
+import Button from '@/components/ui/button/Button.vue'
 
 const { loading, data } = useService(productService.list)
 
@@ -41,9 +41,9 @@ const onSuccessfulCreate = (p: IProductDto) => {
                 </td>
                 <!-- columna de acciones -->
                 <td>
-                    <AppButton>
+                    <Button as-child>
                         <RouterLink :to="'products/' + item.id">Ver</RouterLink>
-                    </AppButton>
+                    </Button>
                 </td>
             </tr>
         </tbody>

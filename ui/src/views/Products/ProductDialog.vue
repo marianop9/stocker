@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AppButton from '@/components/AppButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import AppSelect, { type IOption } from '@/components/AppSelect.vue'
 import FormEntry from '@/components/FormEntry.vue'
@@ -10,8 +9,8 @@ import { useService } from '@/service/useService'
 import { computed, ref, watch } from 'vue'
 import { z, type ZodFormattedError } from 'zod'
 import { ProductFormSchema } from './productSchemas'
-import { DialogClose } from 'radix-vue'
 import { productService, type ServiceResponse } from '@/service/productService'
+import Button from '@/components/ui/button/Button.vue'
 
 const props = defineProps<{
     product?: IProductDto
@@ -88,77 +87,71 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
         v-model:open="isOpen"
     >
         <template #trigger>
-            <AppButton>
+            <Button>
                 {{ product ? 'Modificar' : 'Agregar producto' }}
-            </AppButton>
+            </Button>
         </template>
         <template #content>
             <div v-if="serviceError" class="text-red-600">
                 <p>Ocurrió un error al ejecutar el servicio:</p>
                 <p>{{ serviceError }}</p>
             </div>
-            <form @submit.prevent="handleSubmit">
-                <div style="max-width: 75%">
-                    <FormEntry
+            <form @submit.prevent="handleSubmit" id="productForm">
+                <FormEntry name="name" label="Nombre" class="mt-2" :errors="errors?.name?._errors">
+                    <input
                         name="name"
-                        label="Nombre"
-                        class="mt-2"
-                        :errors="errors?.name?._errors"
-                    >
-                        <input
-                            name="name"
-                            :value="product?.name"
-                            class="border-black border p-1 bg-gray-100 rounded-md"
-                        />
-                    </FormEntry>
-                    <FormEntry
+                        :value="product?.name"
+                        class="border-black border p-1 bg-gray-100 rounded-md"
+                    />
+                </FormEntry>
+                <FormEntry
+                    name="description"
+                    label="Descripción"
+                    class="mt-2"
+                    :errors="errors?.description?._errors"
+                >
+                    <textarea
                         name="description"
-                        label="Descripción"
-                        class="mt-2"
-                        :errors="errors?.description?._errors"
-                    >
-                        <textarea
-                            name="description"
-                            :value="product?.description"
-                            rows="3"
-                            class="border-black border p-1 bg-gray-100 rounded-md"
-                        ></textarea>
-                    </FormEntry>
-                    <FormEntry
+                        :value="product?.description"
+                        rows="3"
+                        class="border-black border p-1 bg-gray-100 rounded-md"
+                    ></textarea>
+                </FormEntry>
+                <FormEntry
+                    name="categoryId"
+                    label="Categoria"
+                    class="mt-2"
+                    :errors="errors?.categoryId?._errors"
+                >
+                    <AppSelect
+                        :options="selectDescribableMapper(categories?.items ?? [])"
+                        :defaultValue="product?.categoryId"
                         name="categoryId"
-                        label="Categoria"
-                        class="mt-2"
-                        :errors="errors?.categoryId?._errors"
-                    >
-                        <AppSelect
-                            :options="selectDescribableMapper(categories?.items ?? [])"
-                            :defaultValue="product?.categoryId"
-                            name="categoryId"
-                        />
-                    </FormEntry>
-                    <FormEntry
+                    />
+                </FormEntry>
+                <FormEntry
+                    name="providerId"
+                    label="Proveedor"
+                    class="mt-2"
+                    :errors="errors?.providerId?._errors"
+                >
+                    <AppSelect
+                        :options="selectDescribableMapper(providers?.items ?? [])"
+                        :defaultValue="product?.providerId"
                         name="providerId"
-                        label="Proveedor"
-                        class="mt-2"
-                        :errors="errors?.providerId?._errors"
-                    >
-                        <AppSelect
-                            :options="selectDescribableMapper(providers?.items ?? [])"
-                            :defaultValue="product?.providerId"
-                            name="providerId"
-                        />
-                    </FormEntry>
-                </div>
-
-                <div class="mt-4 flex justify-end">
-                    <DialogClose asChild>
-                        <AppButton class="mr-2" type="button" variant="secondary"
-                            >Cancelar</AppButton
-                        >
-                    </DialogClose>
-                    <AppButton type="submit">Guardar</AppButton>
-                </div>
+                    />
+                </FormEntry>
             </form>
+        </template>
+        <template v-slot:footer>
+            <div class="mt-4 flex justify-end">
+                <!-- <DialogClose asChild>
+                    <AppButton class="mr-2" type="button" variant="secondary"
+                        >Cancelar</AppButton
+                    >
+                </DialogClose> -->
+                <Button type="submit" form="productForm">Guardar</Button>
+            </div>
         </template>
     </AppDialog>
 </template>
