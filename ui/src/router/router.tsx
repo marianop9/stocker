@@ -1,51 +1,43 @@
 import App from "@/App";
+import AppError from "@/AppError";
 import AdminView from "@/views/Admin/AdminView";
 import HomeView from "@/views/Home/HomeView";
+import { productDetailLoader } from "@/views/Products/Detail/productDetailLoader";
 import ProductDetailView from "@/views/Products/Detail/ProductDetailView";
+import {
+  productCreateAction,
+  productsLoader,
+} from "@/views/Products/productsLoader";
 import ProductsView from "@/views/Products/ProductsView";
 import { createBrowserRouter } from "react-router-dom";
 
-type AppRoute = {
-  path: string;
-  element: JSX.Element;
-  children?: AppRoute[];
-  title?: string;
-};
-
-export const routes: AppRoute[] = [
+const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    errorElement: <AppError />,
     children: [
       {
-        path: "/",
-        title: "Inicio",
+        path: "",
         element: <HomeView />,
       },
       {
-        path: "/products",
-        title: "Productos",
+        path: "products",
         element: <ProductsView />,
+        loader: productsLoader,
+        action: productCreateAction,
       },
       {
-        path: "/products/:id",
+        path: "products/:id",
         element: <ProductDetailView />,
+        loader: productDetailLoader,  
       },
       {
-        path: "/admin",
-        title: "Administraciones",
+        path: "admin",
         element: <AdminView />,
       },
     ],
   },
-];
-
-const router = createBrowserRouter(
-  routes.map((r) => ({
-    path: r.path,
-    element: r.element,
-    children: r.children,
-  }))
-);
+]);
 
 export default router;
