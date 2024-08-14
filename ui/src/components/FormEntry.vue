@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { Label } from 'radix-vue'
+import { Label } from '@/components/ui/label'
 
 const { name, label, helperText } = defineProps<{
     name: string

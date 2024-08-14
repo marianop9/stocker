@@ -11,7 +11,7 @@
                 <DialogTitle>{{ title }}</DialogTitle>
                 <DialogDescription v-if="description">{{ description }}</DialogDescription>
             </DialogHeader>
-            <div class="grid gap-4 px-6 overflow-y-auto">
+            <div class="grid gap-y-4 px-6 overflow-y-auto">
                 <slot name="content"> </slot>
             </div>
             <DialogFooter class="p-6 pt-0"> <slot name="footer" /> </DialogFooter>

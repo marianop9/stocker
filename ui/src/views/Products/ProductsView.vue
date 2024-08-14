@@ -5,6 +5,8 @@ import ProductDialog from './ProductDialog.vue'
 import type { IProductDto, IProductView } from '@/models/products'
 import { useRouter } from 'vue-router'
 import Button from '@/components/ui/button/Button.vue'
+import AppDataTable from '@/components/AppDataTable.vue'
+import { productTableColumns } from './productTableColumns'
 
 const { loading, data } = useService(productService.list)
 
@@ -27,7 +29,7 @@ const onSuccessfulCreate = (p: IProductDto) => {
 </script>
 
 <template>
-    <table class="w-2/3 border-2">
+    <!-- <table class="w-2/3 border-2">
         <thead class="text-left">
             <tr>
                 <th v-for="col in cols" :key="col.field">{{ col.label }}</th>
@@ -39,7 +41,6 @@ const onSuccessfulCreate = (p: IProductDto) => {
                 <td v-for="col in cols" :key="col.field">
                     {{ item[col.field] }}
                 </td>
-                <!-- columna de acciones -->
                 <td>
                     <Button as-child>
                         <RouterLink :to="'products/' + item.id">Ver</RouterLink>
@@ -47,7 +48,8 @@ const onSuccessfulCreate = (p: IProductDto) => {
                 </td>
             </tr>
         </tbody>
-    </table>
+    </table> -->
+    <AppDataTable :columns="productTableColumns" :data="data?.items ?? []" />
 
     <ProductDialog @success="onSuccessfulCreate" />
 </template>

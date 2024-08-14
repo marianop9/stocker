@@ -11,6 +11,7 @@ import { z, type ZodFormattedError } from 'zod'
 import { ProductFormSchema } from './productSchemas'
 import { productService, type ServiceResponse } from '@/service/productService'
 import Button from '@/components/ui/button/Button.vue'
+import Input from '@/components/ui/input/Input.vue'
 
 const props = defineProps<{
     product?: IProductDto
@@ -98,11 +99,7 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
             </div>
             <form @submit.prevent="handleSubmit" id="productForm">
                 <FormEntry name="name" label="Nombre" class="mt-2" :errors="errors?.name?._errors">
-                    <input
-                        name="name"
-                        :value="product?.name"
-                        class="border-black border p-1 bg-gray-100 rounded-md"
-                    />
+                    <Input name="name" :defaultValue="product?.name" />
                 </FormEntry>
                 <FormEntry
                     name="description"
@@ -114,7 +111,7 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
                         name="description"
                         :value="product?.description"
                         rows="3"
-                        class="border-black border p-1 bg-gray-100 rounded-md"
+                        class="p-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent placeholder:text-muted-foreground"
                     ></textarea>
                 </FormEntry>
                 <FormEntry
@@ -127,6 +124,7 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
                         :options="selectDescribableMapper(categories?.items ?? [])"
                         :defaultValue="product?.categoryId"
                         name="categoryId"
+                        label="Categoria"
                     />
                 </FormEntry>
                 <FormEntry
@@ -139,6 +137,7 @@ function selectDescribableMapper(items: IDescribable[]): IOption[] {
                         :options="selectDescribableMapper(providers?.items ?? [])"
                         :defaultValue="product?.providerId"
                         name="providerId"
+                        label="Categoria"
                     />
                 </FormEntry>
             </form>
