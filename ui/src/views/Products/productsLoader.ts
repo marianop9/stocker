@@ -1,4 +1,4 @@
-import { productService } from "@/server/productService";
+import { productService } from "@/service/productService";
 import {
   ActionFunction,
   redirect,

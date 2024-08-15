@@ -1,4 +1,4 @@
-import { productService } from "@/server/productService";
+import { productService } from "@/service/productService";
 import { LoaderFunction } from "react-router-dom";
 
 export const productDetailLoader = async function ({ params }) {

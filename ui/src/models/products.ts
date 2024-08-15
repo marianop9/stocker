@@ -8,7 +8,7 @@ export interface IProductView {
     providerName: string
 }
 
-export type IProductDto = {
+export interface IProductDto {
     id: string
     name: string
     description: string
@@ -17,3 +17,21 @@ export type IProductDto = {
 }
 
 export type IProductCreateDto = Omit<IProductDto, 'id'>
+
+export interface IProductDetailView {
+    id: string
+    productId: string
+    colorId: string
+    colorHexcode: string
+    colorName: string
+    sizeId: string
+    sizeAlias: string
+}
+
+export interface IProductDetailDto {
+    id: string
+    productId: string
+    colorId: string
+    sizeId: string
+}
+

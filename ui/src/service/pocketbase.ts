@@ -1,5 +1,5 @@
-import type { ICategory, Provider } from '@/models/administrations'
-import type { IProductDto, IProductView } from '@/models/products'
+import type { ICategory, IColor, IProvider, ISize } from '@/models/administrations'
+import type { IProductDetailView, IProductDto, IProductView } from '@/models/products'
 import Client, { RecordService } from 'pocketbase'
 
 class PocketBaseClient {
@@ -13,8 +13,16 @@ class PocketBaseClient {
         return this.pb.collection('categories')
     }
 
-    get providers(): RecordService<Provider> {
+    get providers(): RecordService<IProvider> {
         return this.pb.collection('providers')
+    }
+
+    get colors(): RecordService<IColor> {
+        return this.pb.collection('colors')
+    }
+
+    get sizes(): RecordService<ISize> {
+        return this.pb.collection('sizes')
     }
 
     get products(): RecordService<IProductDto> {
@@ -23,6 +31,10 @@ class PocketBaseClient {
 
     get productsView(): RecordService<IProductView> {
         return this.pb.collection('products_view')
+    }
+
+    get productDetailsView(): RecordService<IProductDetailView> {
+        return this.pb.collection('product_details_view')
     }
 }
 

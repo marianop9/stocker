@@ -32,6 +32,9 @@ export function AppDialogContent({ title, description, children }: Props) {
 /** API:
  * <AppDialog>
  *  <AppDialogTrigger></AppDialogTrigger>
- *  <AppDialogContent></AppDialogContent>
+ *  <AppDialogContent>
+ *    <DialogFooter> (optional)
+ *    </DialogFooter>
+ *  </AppDialogContent>
  * </AppDialog>
  */

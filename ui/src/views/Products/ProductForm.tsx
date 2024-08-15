@@ -1,14 +1,14 @@
 import AppFormEntry from "@/components/AppFormEntry";
 import { Input } from "@/components/ui/input";
 import AppSelect from "@/components/AppSelect";
-import { useService } from "@/server/useService";
-import { categoryService, providerService } from "@/server/adminService.ts";
+import { useService } from "@/service/useService";
+import { categoryService, providerService } from "@/service/adminService.ts";
 import { DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { z, ZodFormattedError } from "zod";
 import { ProductFormSchema } from "./productSchemas";
 import { FormEvent, useState } from "react";
-import { productService, ServiceResponse } from "@/server/productService";
+import { productService, ServiceResponse } from "@/service/productService";
 import { IProductDto, IProductView } from "@/models/products";
 
 type ProductFormSchemaType = z.infer<typeof ProductFormSchema>;
@@ -126,11 +126,6 @@ function ProductForm({ product, afterSubmit }: Props) {
                 />
             </AppFormEntry>
             <DialogFooter>
-                <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                        Cancelar
-                    </Button>
-                </DialogClose>
                 <Button type="submit">Guardar</Button>
             </DialogFooter>
         </form>
