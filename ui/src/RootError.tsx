@@ -6,7 +6,7 @@ interface IMessage {
     message: string;
 }
 
-function AppError() {
+function RootError() {
     const error = useRouteError();
     console.log(error);
 
@@ -30,4 +30,4 @@ function AppError() {
     );
 }
 
-export default AppError;
+export default RootError;

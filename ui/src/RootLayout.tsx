@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import AppNavBar from "./components/AppNavbar";
 
-function App() {
+function RootLayout() {
   return (
     <>
       <header>
@@ -14,4 +14,4 @@ function App() {
   );
 }
 
-export default App;
+export default RootLayout;
