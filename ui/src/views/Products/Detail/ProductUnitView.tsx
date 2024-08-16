@@ -1,5 +1,5 @@
 import useAppRouterLoaderData from "@/lib/hooks/useAppRouterLoaderData";
-import { productDetailLoader } from "./productDetailLoader";
+import { productUnitLoader } from "./productUnitLoader";
 import ProductForm from "../ProductForm";
 import {
     AppDialog,
@@ -10,16 +10,16 @@ import { Button } from "@/components/ui/button";
 import { useParams, useRevalidator } from "react-router-dom";
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { IProductDetailView } from "@/models/products";
+import { IProductUnitView } from "@/models/products";
 import { AppDataTable } from "@/components/AppDataTable";
-import ProductDetailForm from "./ProductDetailForm";
+import ProductUnitForm from "./ProductUnitForm";
 import { useQuery } from "@tanstack/react-query";
-import { productDetailService } from "@/service/productService";
+import { productUnitService } from "@/service/productService";
 
-function ProductDetailView() {
+function ProductUnitView() {
     const [productDialogOpen, setProductDialogOpen] = useState(false);
 
-    const product = useAppRouterLoaderData(productDetailLoader);
+    const product = useAppRouterLoaderData(productUnitLoader);
     const routeParams = useParams();
     const productId = routeParams["id"]
 
@@ -27,7 +27,7 @@ function ProductDetailView() {
     const { data: details } = useQuery({
         queryKey: ["product-details"],
         enabled: productId !== undefined,
-        queryFn: () => productDetailService.list(productId!),
+        queryFn: () => productUnitService.list(productId!),
     });
 
     const { revalidate } = useRevalidator();
@@ -79,7 +79,7 @@ function ProductDetailView() {
                         </div>
                     </AppDialogTrigger>
                     <AppDialogContent title="Agregar detalles">
-                        <ProductDetailForm details={details?.items ?? []} />
+                        <ProductUnitForm details={details?.items ?? []} />
                     </AppDialogContent>
                 </AppDialog>
                 <AppDataTable columns={productDetailsColumns} data={details?.items ?? []} />
@@ -88,7 +88,7 @@ function ProductDetailView() {
     );
 }
 
-const productDetailsColumns: ColumnDef<IProductDetailView>[] = [
+const productDetailsColumns: ColumnDef<IProductUnitView>[] = [
     {
         header: "Id",
         accessorKey: "id",
@@ -103,4 +103,4 @@ const productDetailsColumns: ColumnDef<IProductDetailView>[] = [
     },
 ];
 
-export default ProductDetailView;
+export default ProductUnitView;

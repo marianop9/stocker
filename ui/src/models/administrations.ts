@@ -2,6 +2,7 @@ export interface IDescribable {
     id: string;
     name: string;
     description: string;
+    code: string;
 }
 
 export interface ICategory extends IDescribable {}
@@ -18,3 +19,4 @@ export interface ISize {
     id: string;
     alias: string;
 }
+    

@@ -4,16 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { IProductDetailView } from "@/models/products";
+import { IProductUnitView } from "@/models/products";
 import { colorService, sizeService } from "@/service/adminService.ts";
 import { useQuery } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
 
 interface Props {
-    details: IProductDetailView[];
+    details: IProductUnitView[];
 }
 
-function ProductDetailForm({ details }: Props) {
+function ProductUnitForm({ details }: Props) {
     const [selectedColor, setSelectedColor] = useState<string>("");
     const sizesByColor = details
         .filter((det) => det.colorId === selectedColor)
@@ -73,4 +73,4 @@ function ProductDetailForm({ details }: Props) {
     );
 }
 
-export default ProductDetailForm;
+export default ProductUnitForm;

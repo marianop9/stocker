@@ -1,5 +1,5 @@
 import type { ICategory, IColor, IProvider, ISize } from '@/models/administrations'
-import type { IProductDetailView, IProductDto, IProductView } from '@/models/products'
+import type { IProductUnitView, IProductDto, IProductView } from '@/models/products'
 import IUser from '@/models/user'
 import Client, { RecordService } from 'pocketbase'
 
@@ -42,8 +42,8 @@ class PocketBaseClient {
         return this.pb.collection('products_view')
     }
 
-    get productDetailsView(): RecordService<IProductDetailView> {        
-        return this.pb.collection('product_details_view')
+    get productUnitsView(): RecordService<IProductUnitView> {        
+        return this.pb.collection('product_units_view')
     }
 }
 

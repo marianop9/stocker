@@ -2,8 +2,8 @@ import RootLayout from "@/RootLayout";
 import AppError from "@/RootError";
 import AdminView from "@/views/Admin/AdminView";
 import HomeView from "@/views/Home/HomeView";
-import { productDetailLoader } from "@/views/Products/Detail/productDetailLoader";
-import ProductDetailView from "@/views/Products/Detail/ProductDetailView";
+import ProductUnitView from "@/views/Products/Detail/ProductUnitView";
+import { productUnitLoader } from "@/views/Products/Detail/productUnitLoader";
 import {
     productCreateAction,
     productsLoader,
@@ -38,8 +38,8 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "products/:id",
-                        element: <ProductDetailView />,
-                        loader: productDetailLoader,
+                        element: <ProductUnitView />,
+                        loader: productUnitLoader,
                     },
                     {
                         path: "admin",

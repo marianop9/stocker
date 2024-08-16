@@ -3,13 +3,14 @@ import { Input } from "@/components/ui/input";
 import AppSelect from "@/components/AppSelect";
 import { useService } from "@/service/useService";
 import { categoryService, providerService } from "@/service/adminService.ts";
-import { DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { z, ZodFormattedError } from "zod";
 import { ProductFormSchema } from "./productSchemas";
 import { FormEvent, useState } from "react";
-import { productService, ServiceResponse } from "@/service/productService";
+import { productService } from "@/service/productService";
 import { IProductDto, IProductView } from "@/models/products";
+import { ServiceResponse } from "@/service/serviceResponse";
 
 type ProductFormSchemaType = z.infer<typeof ProductFormSchema>;
 
@@ -48,15 +49,25 @@ function ProductForm({ product, afterSubmit }: Props) {
             return;
         }
 
+        // build sku
+        const category = categories?.items.find(c => c.id === data.categoryId)
+        const provider = providers?.items.find(c => c.id === data.providerId)
+
+        let sku = ""
+        if (category && provider)
+            sku = category?.code + provider?.code
+
         let response: ServiceResponse<IProductDto>;
         if (isUpdate) {
             response = await productService.update({
                 id: product.id,
                 ...data,
+                sku
             });
         } else {
             response = await productService.create({
                 ...data,
+                sku
             });
         }
 
