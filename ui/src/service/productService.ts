@@ -55,12 +55,12 @@ export const productService: IProductSerivce = {
 };
 
 interface IProductUnitService {
-    list(productId: string): Promise<ListResult<IProductUnitView>>;
+    list(productId: string): Promise<IProductUnitView[]>;
 }
 
 export const productUnitService: IProductUnitService = {
     async list(productId: string) {
-        return pbClient.productUnitsView.getList(1, 10, {
+        return pbClient.productUnitsView.getFullList(20, {
             filter: `productId = '${productId}'`,
         });
     },

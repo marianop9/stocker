@@ -21,11 +21,10 @@ function ProductUnitView() {
 
     const product = useAppRouterLoaderData(productUnitLoader);
     const routeParams = useParams();
-    const productId = routeParams["id"]
+    const productId = routeParams["id"];
 
-    
     const { data: details } = useQuery({
-        queryKey: ["product-details"],
+        queryKey: ["product-details", productId],
         enabled: productId !== undefined,
         queryFn: () => productUnitService.list(productId!),
     });
@@ -79,10 +78,13 @@ function ProductUnitView() {
                         </div>
                     </AppDialogTrigger>
                     <AppDialogContent title="Agregar detalles">
-                        <ProductUnitForm details={details?.items ?? []} />
+                        <ProductUnitForm details={details ?? []} />
                     </AppDialogContent>
                 </AppDialog>
-                <AppDataTable columns={productDetailsColumns} data={details?.items ?? []} />
+                <AppDataTable
+                    columns={productDetailsColumns}
+                    data={details ?? []}
+                />
             </div>
         </>
     );

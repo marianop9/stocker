@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { IProductUnitView } from "@/models/products";
 import { colorService, sizeService } from "@/service/adminService.ts";
 import { useQuery } from "@tanstack/react-query";
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 interface Props {
     details: IProductUnitView[];
@@ -15,9 +15,6 @@ interface Props {
 
 function ProductUnitForm({ details }: Props) {
     const [selectedColor, setSelectedColor] = useState<string>("");
-    const sizesByColor = details
-        .filter((det) => det.colorId === selectedColor)
-        .map((det) => det.sizeId);
 
     const { data: colors } = useQuery({
         queryKey: ["colors"],
@@ -29,10 +26,23 @@ function ProductUnitForm({ details }: Props) {
         queryFn: sizeService.list,
     });
 
+    const sizesByColor = useMemo(() => {
+        if (!sizes || selectedColor === "") return [];
+
+        const detailSizesByColor = details
+            .filter((det) => det.colorId === selectedColor)
+            .map((det) => det.sizeId);
+
+        return sizes.map((size) => ({
+            ...size,
+            checked: detailSizesByColor.includes(size.id),
+        }));
+    }, [sizes, details, selectedColor]);
+
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const formData = new FormData(e.currentTarget)
+        const formData = new FormData(e.currentTarget);
         console.log(Object.fromEntries(formData));
     };
 
@@ -42,10 +52,13 @@ function ProductUnitForm({ details }: Props) {
                 <AppSelect
                     name="color"
                     options={
-                        colors?.map((c) => ({ label: c.name, value: c.id })) ??
-                        []
+                        colors?.map((c) => ({
+                            label: c.name,
+                            value: c.id,
+                        })) ?? []
                     }
                     placeholder="Seleccione un color..."
+                    defaultValue={selectedColor}
                     value={selectedColor}
                     onValueChange={setSelectedColor}
                 />
@@ -54,10 +67,13 @@ function ProductUnitForm({ details }: Props) {
             <div className="p-2 border rounded">
                 <h4>Talles</h4>
                 <div className="flex justify-evenly">
-                    {sizes?.map((size) => (
-                        <div key={size.id} className="flex items-top space-x-2">
+                    {sizesByColor.map((size) => (
+                        <div
+                            key={size.id + selectedColor}
+                            className="flex items-top space-x-2"
+                        >
                             <Checkbox
-                                defaultChecked={sizesByColor.includes(size.id)}
+                                defaultChecked={!!size.checked}
                                 name="sizeId[]"
                                 value={size.id}
                             />
