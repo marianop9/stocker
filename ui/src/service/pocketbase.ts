@@ -45,6 +45,10 @@ class PocketBaseClient {
     get productUnitsView(): RecordService<IProductUnitView> {        
         return this.pb.collection('product_units_view')
     }
+
+    get stockEntries(): RecordService {
+        return this.pb.collection('stock_entry')
+    }
 }
 
 const pbUrl = 'http://localhost:8090'

@@ -12,6 +12,10 @@ import ProductsView from "@/views/Products/ProductsView";
 import { createBrowserRouter } from "react-router-dom";
 import PrivateRoute from "@/components/PrivateRoute";
 import LoginView from "@/views/Login/LoginView";
+import MovementsView from "@/views/Movements/MovementsView";
+import { movementFormActions } from "@/views/Movements/movementFormActions";
+import StockEntryView from "@/views/Movements/StockEntry/StockEntryView";
+import { stockEntryViewLoader } from "@/views/Movements/StockEntry/stockEntryViewLoader";
 
 const router = createBrowserRouter([
     {
@@ -44,6 +48,16 @@ const router = createBrowserRouter([
                     {
                         path: "admin",
                         element: <AdminView />,
+                    },
+                    {
+                        path: "movements",
+                        element: <MovementsView />,
+                        action: movementFormActions,
+                    },
+                    {
+                        path: "movements/:id",
+                        element: <StockEntryView />,
+                        loader: stockEntryViewLoader,
                     },
                 ],
             },

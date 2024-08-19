@@ -12,6 +12,10 @@ const items = [
         url: "/products",
     },
     {
+        label: "Movimientos",
+        url: "/movements",
+    },
+    {
         label: "Administración",
         url: "/admin",
     },
