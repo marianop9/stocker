@@ -1,6 +1,6 @@
 import RootLayout from "@/RootLayout";
 import AppError from "@/RootError";
-import AdminView from "@/views/Admin/AdminView";
+import AdmininstrationsView from "@/views/Administrations/AdministrationsView";
 import HomeView from "@/views/Home/HomeView";
 import ProductUnitView from "@/views/Products/Detail/ProductUnitView";
 import { productUnitLoader } from "@/views/Products/Detail/productUnitLoader";
@@ -47,7 +47,7 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "admin",
-                        element: <AdminView />,
+                        element: <AdmininstrationsView />,
                     },
                     {
                         path: "movements",
