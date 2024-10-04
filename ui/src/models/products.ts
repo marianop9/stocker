@@ -6,6 +6,8 @@ export interface IProductView {
     categoryName: string;
     providerId: string;
     providerName: string;
+    cost: number;
+    price: number;
 }
 
 export interface IProductDto {
@@ -15,6 +17,8 @@ export interface IProductDto {
     categoryId: string;
     providerId: string;
     sku: string;
+    cost: number;
+    price: number;
 }
 
 export type IProductCreateDto = Omit<IProductDto, "id">;

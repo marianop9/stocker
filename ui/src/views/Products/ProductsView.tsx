@@ -25,11 +25,8 @@ function ProductsView() {
     };
 
     return (
-        <>
-            <h1>Hello products</h1>
-            <div>
-                <ProductsDataTable products={products?.items ?? []} />
-            </div>
+        <div className="p-8 w-2/3 mx-auto">
+            <ProductsDataTable products={products?.items ?? []} />
 
             <AppDialog>
                 <AppDialogTrigger asChild>
@@ -39,7 +36,7 @@ function ProductsView() {
                     <ProductForm afterSubmit={handleCreatedProduct} />
                 </AppDialogContent>
             </AppDialog>
-        </>
+        </div>
     );
 }
 

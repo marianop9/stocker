@@ -3,6 +3,7 @@ import type {
     IProductUnitView,
     IProductDto,
     IProductView,
+    IProductUnitDto,
 } from "@/models/products";
 import { pbClient } from "./pocketbase";
 import type { ListResult } from "pocketbase";
@@ -29,26 +30,12 @@ export const productService: IProductSerivce = {
         });
     },
     async create(p: IProductCreateDto) {
-        const resp = await executeService(
-            pbClient.products.create({
-                name: p.name,
-                description: p.description,
-                categoryId: p.categoryId,
-                providerId: p.providerId,
-                sku: p.sku,
-            }),
-        );
+        const resp = await executeService(pbClient.products.create(p));
 
         return resp;
     },
     async update(p: IProductDto) {
-        const promise = pbClient.products.update(p.id, {
-            name: p.name,
-            description: p.description,
-            categoryId: p.categoryId,
-            providerId: p.providerId,
-            sku: p.sku,
-        });
+        const promise = pbClient.products.update(p.id, p);
 
         return executeService(promise);
     },
@@ -56,6 +43,7 @@ export const productService: IProductSerivce = {
 
 interface IProductUnitService {
     list(productId: string): Promise<IProductUnitView[]>;
+    createBatch(dtos: IProductUnitDto[]): Promise<boolean>;
 }
 
 export const productUnitService: IProductUnitService = {
@@ -63,5 +51,15 @@ export const productUnitService: IProductUnitService = {
         return pbClient.productUnitsView.getFullList(20, {
             filter: `productId = '${productId}'`,
         });
+    },
+    async createBatch(dtos) {
+        const success: boolean = await pbClient
+            .getInternalClient()
+            .send("/api/custom/productUnits/createBatch", {
+                body: dtos,
+                method: "POST",
+            });
+
+        return success;
     },
 };

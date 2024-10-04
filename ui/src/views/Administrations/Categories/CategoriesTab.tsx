@@ -12,7 +12,6 @@ import { ColumnDef, ColumnFilter } from "@tanstack/react-table";
 import { useState } from "react";
 import CategoriesForm from "./CategoriesForm";
 import GenericFilter from "../GenericFilter";
-import { categoryService } from "@/service/administrationsService";
 
 function categoriesColumns(
     onEdit: (row: ICategory) => void,

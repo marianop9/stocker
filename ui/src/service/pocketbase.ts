@@ -24,6 +24,10 @@ class PocketBaseClient {
         this.pb.authStore.clear();
     }
 
+    getInternalClient() {
+        return this.pb;
+    }
+
     get users(): RecordService<IUser> {
         return this.pb.collection("users");
     }
