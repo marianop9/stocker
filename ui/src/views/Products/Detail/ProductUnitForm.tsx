@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { IProductUnitView } from "@/models/products";
-import { colorService, sizeService } from "@/service/adminService.ts";
+import { IProductUnitDto, IProductUnitView } from "@/models/products";
+import { colorService, sizeService } from "@/service/administrationsService";
+import { productUnitService } from "@/service/productService";
 import { useQuery } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
 
 interface Props {
+    productId: string;
     details: IProductUnitView[];
 }
 
-function ProductUnitForm({ details }: Props) {
+function ProductUnitForm({ productId, details }: Props) {
     const [selectedColor, setSelectedColor] = useState<string>("");
 
     const { data: colors } = useQuery({
@@ -39,11 +41,25 @@ function ProductUnitForm({ details }: Props) {
         }));
     }, [sizes, details, selectedColor]);
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const formData = new FormData(e.currentTarget);
-        console.log(Object.fromEntries(formData));
+
+        const dtos: IProductUnitDto[] = [];
+
+        for (let sizeId of formData.getAll("sizeId")) {
+            dtos.push({
+                id: "",
+                productId: productId,
+                colorId: selectedColor,
+                sizeId: sizeId.toString(),
+            });
+        }
+
+        console.log(dtos);
+
+        console.log(await productUnitService.createBatch(dtos));
     };
 
     return (
@@ -74,7 +90,7 @@ function ProductUnitForm({ details }: Props) {
                         >
                             <Checkbox
                                 defaultChecked={!!size.checked}
-                                name="sizeId[]"
+                                name="sizeId"
                                 value={size.id}
                             />
                             <Label>{size.alias}</Label>

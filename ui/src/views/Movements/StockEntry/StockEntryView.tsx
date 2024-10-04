@@ -9,13 +9,17 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { stockEntryProductService } from "@/service/movementService";
+import { productService, productUnitService } from "@/service/productService";
+import { Button } from "@/components/ui/button";
+import { AppDialog, AppDialogContent, AppDialogTrigger } from "@/components/AppDialog";
+import StockEntryProductUnitForm from "./StockEntryProductUnitForm";
 
 function StockEntryView() {
     const stockEntry = useAppRouterLoaderData(stockEntryViewLoader);
 
-    const { data: stockEntryProducts } = useQuery({
+    const { data: stockEntryProducts, refetch } = useQuery({
         queryKey: ["stock-entry-products", stockEntry.id],
         queryFn: () => stockEntryProductService.list(stockEntry.id!),
         enabled: !!stockEntry.id,
@@ -40,7 +44,10 @@ function StockEntryView() {
                 <div>
                     <ProductSearch
                         stockEntryId={stockEntry.id!}
-                        onSubmitted={console.log}
+                        onSubmitted={(result) => {
+                            console.log(result);
+                            refetch();
+                        }}
                     />
                 </div>
                 <div>
@@ -54,8 +61,7 @@ function StockEntryView() {
                                     {stockEntryProd.productName}
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    Yes. It adheres to the WAI-ARIA design
-                                    pattern.
+                                    <StockEntryProductDetail productId={stockEntryProd.productId} unitPrice={stockEntryProd.unitPrice} />
                                 </AccordionContent>
                             </AccordionItem>
                         ))}
@@ -64,6 +70,54 @@ function StockEntryView() {
             </div>
         </>
     );
+}
+
+interface StockEntryProductDetailProps {
+    productId: string
+    unitPrice: number
+}
+function StockEntryProductDetail({ productId, unitPrice }: StockEntryProductDetailProps) {
+    const { data, isLoading } = useQuery({
+        queryKey: ["stockEntryProductDetail", productId],
+        queryFn: () => productService.get(productId),
+    })
+
+    if (isLoading || !data) {
+        return <div>loading...</div>
+    }
+
+    return (
+        <div className="flex justify-around p-4">
+            <div>
+
+                <div>
+                    <span>Categoria: </span>
+                    <span>{data.categoryName}</span>
+                </div>
+                <div>
+                    <span>Proveedor: </span>
+                    <span>{data.providerName}</span>
+                </div>
+                <div>
+                    <span>Precio: </span>
+                    <span>{unitPrice}</span>
+                </div>
+            </div>
+            <div>
+                <div className="flex">
+                    <h3>Unidades</h3>
+                    <AppDialog>
+                        <AppDialogTrigger asChild>
+                            <Button size={"sm"}>Editar</Button>
+                        </AppDialogTrigger>
+                        <AppDialogContent title="Editar unidades">
+                            <StockEntryProductUnitForm />
+                        </AppDialogContent>
+                    </AppDialog>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 export default StockEntryView;

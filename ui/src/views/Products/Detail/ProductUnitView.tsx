@@ -16,6 +16,11 @@ import ProductUnitForm from "./ProductUnitForm";
 import { useQuery } from "@tanstack/react-query";
 import { productUnitService } from "@/service/productService";
 
+const currencyFmt = Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+});
+
 function ProductUnitView() {
     const [productDialogOpen, setProductDialogOpen] = useState(false);
 
@@ -51,13 +56,15 @@ function ProductUnitView() {
                             {product?.categoryName} / {product?.providerName}
                         </span>
                     </div>
+                    <div>Costo: {currencyFmt.format(product.cost)}</div>
+                    <div>Precio: {currencyFmt.format(product.price)}</div>
 
                     <AppDialog
                         open={productDialogOpen}
                         onOpenChange={setProductDialogOpen}
                     >
                         <AppDialogTrigger asChild>
-                            <Button>Modificar</Button>
+                            <Button className="mt-4">Modificar</Button>
                         </AppDialogTrigger>
                         <AppDialogContent title="Modificar producto">
                             <ProductForm
@@ -78,7 +85,10 @@ function ProductUnitView() {
                         </div>
                     </AppDialogTrigger>
                     <AppDialogContent title="Agregar detalles">
-                        <ProductUnitForm details={details ?? []} />
+                        <ProductUnitForm
+                            productId={product.id}
+                            details={details ?? []}
+                        />
                     </AppDialogContent>
                 </AppDialog>
                 <AppDataTable
