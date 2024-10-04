@@ -7,17 +7,30 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 export function useCategories() {
-    return useQuery({
-        queryKey: ["categories"],
+    const queryKey = ["categories"];
+
+    const queryResult = useQuery({
+        queryKey,
         queryFn: categoryService.list,
     });
+
+    return {
+        queryKey,
+        ...queryResult,
+    };
 }
 
 export function useProviders() {
-    return useQuery({
-        queryKey: ["providers"],
+    const queryKey = ["providers"];
+    const queryResult = useQuery({
+        queryKey,
         queryFn: providerService.list,
     });
+
+    return {
+        queryKey,
+        ...queryResult,
+    };
 }
 
 export function useColors() {

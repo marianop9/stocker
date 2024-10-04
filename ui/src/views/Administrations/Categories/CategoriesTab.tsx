@@ -1,77 +1,121 @@
 import { AppDataTable } from "@/components/AppDataTable";
-import AppFormEntry from "@/components/AppFormEntry";
-import { Input } from "@/components/ui/input";
+import {
+    AppDialog,
+    AppDialogContent,
+    AppDialogTrigger,
+} from "@/components/AppDialog";
+import { Button } from "@/components/ui/button";
 import { useCategories } from "@/hooks/administrations";
 import { ICategory } from "@/models/administrations";
+import { useQueryClient } from "@tanstack/react-query";
 import { ColumnDef, ColumnFilter } from "@tanstack/react-table";
 import { useState } from "react";
+import CategoriesForm from "./CategoriesForm";
+import GenericFilter from "../GenericFilter";
+import { categoryService } from "@/service/administrationsService";
 
-const categoriesColumns: ColumnDef<ICategory>[] = [
-    {
-        accessorKey: "name",
-        header: "Nombre",
-        filterFn: "includesString",
-    },
-    {
-        accessorKey: "description",
-        header: "Descripción",
-    },
-    {
-        accessorKey: "code",
-        header: "Código",
-    },
-];
+function categoriesColumns(
+    onEdit: (row: ICategory) => void,
+    onDelete: (id: string) => void,
+): ColumnDef<ICategory>[] {
+    return [
+        {
+            accessorKey: "name",
+            header: "Nombre",
+            filterFn: "includesString",
+        },
+        {
+            accessorKey: "description",
+            header: "Descripción",
+        },
+        {
+            accessorKey: "code",
+            header: "Código",
+        },
+        {
+            id: "actions",
+            cell: ({ row }) => (
+                <div className="flex justify-end">
+                    <Button
+                        onClick={() => onDelete(row.original.id)}
+                        variant="destructive"
+                        className="mr-2"
+                    >
+                        Eliminar
+                    </Button>
+                    <Button onClick={() => onEdit(row.original)}>Editar</Button>
+                </div>
+            ),
+        },
+    ];
+}
 
 function CategoriesView() {
-    const { data } = useCategories();
-    const [filterTerm, setFilterTerm] = useState("");
-    const [filterType, setFilterType] = useState("name");
-    const columnFilter: ColumnFilter = { id: filterType, value: filterTerm };
+    const queryClient = useQueryClient();
+    const { data, queryKey } = useCategories();
+
+    const [filter, setFilter] = useState<ColumnFilter | null>(null);
+
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [entityToEdit, setEntityToEdit] = useState<ICategory | null>(null);
+
+    function handleCreateUpdateSuccess(cat: ICategory, wasUpdate: boolean) {
+        queryClient.setQueryData(queryKey, (oldData: ICategory[]) =>
+            wasUpdate
+                ? oldData.map((old) => (old.id === cat.id ? cat : old))
+                : [...oldData, cat],
+        );
+        setIsDialogOpen(false);
+    }
+
+    function handleDialogOpenChange(open: boolean) {
+        !open && setEntityToEdit(null);
+
+        setIsDialogOpen(open);
+    }
+
+    const columns = categoriesColumns(
+        (entity) => {
+            setEntityToEdit(entity);
+            setIsDialogOpen(true);
+        },
+        (id) => {
+            console.log(id);
+        },
+    );
 
     return (
         <>
-            <div className="mb-5 flex bg-gray-100 p-4 rounded-md">
-                <AppFormEntry label="Filtro" name="">
-                    <Input
-                        className="w-[300px] mr-5"
-                        value={filterTerm}
-                        onChange={(e) => setFilterTerm(e.target.value)}
-                    />
-                </AppFormEntry>
-                <AppFormEntry label="Filtrar por" name="">
-                    <div className="flex gap-4">
-                        <div>
-                            <input
-                                type="radio"
-                                name="filterType"
-                                id="filterTypeName"
-                                value="name"
-                                onChange={(e) => setFilterType(e.target.value)}
-                                defaultChecked
+            <div className="mb-5 flex items-center bg-gray-100 p-4 rounded-md">
+                <GenericFilter<ICategory>
+                    propertiesToFilter={[
+                        { key: "name", label: "Nombre" },
+                        { key: "code", label: "Código" },
+                    ]}
+                    onFilterChange={(f) => setFilter(f)}
+                />
+
+                <div className="ml-auto">
+                    <AppDialog
+                        open={isDialogOpen}
+                        onOpenChange={handleDialogOpenChange}
+                    >
+                        <AppDialogTrigger asChild>
+                            <Button>Agregar</Button>
+                        </AppDialogTrigger>
+                        <AppDialogContent title="Agregar categoría">
+                            <CategoriesForm
+                                onSuccess={handleCreateUpdateSuccess}
+                                formEntity={entityToEdit}
                             />
-                            <label htmlFor="filterTypeName" className="ml-2">
-                                Nombre
-                            </label>
-                        </div>
-                        <div>
-                            <input
-                                type="radio"
-                                name="filterType"
-                                id="filterTypeCode"
-                                value="code"
-                                onChange={(e) => setFilterType(e.target.value)}
-                            />
-                            <label htmlFor="filterTypeCode" className="ml-2">
-                                Código
-                            </label>
-                        </div>
-                    </div>
-                </AppFormEntry>
+                        </AppDialogContent>
+                    </AppDialog>
+                </div>
             </div>
             <AppDataTable
-                columns={categoriesColumns}
+                columns={columns}
                 data={data ?? []}
-                filters={[columnFilter]}
+                filters={filter !== null ? [filter] : []}
             />
         </>
     );
