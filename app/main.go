@@ -40,6 +40,7 @@ type ProductUnitDto struct {
 	ProductId string `json:"productId"`
 	ColorId   string `json:"colorId"`
 	SizeId    string `json:"sizeId"`
+	Quantity  int    `json:"quantity"`
 }
 
 func setEndpoints(app *pocketbase.PocketBase) {
@@ -71,6 +72,7 @@ func setEndpoints(app *pocketbase.PocketBase) {
 						"colorId":   dto.ColorId,
 						"sizeId":    dto.SizeId,
 						"sku":       "sku-todo",
+						"quantity":  dto.Quantity,
 					})
 
 					if err := form.Submit(); err != nil {

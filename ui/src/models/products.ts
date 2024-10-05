@@ -31,6 +31,7 @@ export interface IProductUnitView {
     colorName: string;
     sizeId: string;
     sizeAlias: string;
+    quantity: number;
 }
 
 export interface IProductUnitDto {
@@ -38,4 +39,5 @@ export interface IProductUnitDto {
     productId: string;
     colorId: string;
     sizeId: string;
+    quantity: number;
 }

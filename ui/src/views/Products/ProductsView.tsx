@@ -25,7 +25,7 @@ function ProductsView() {
     };
 
     return (
-        <div className="p-8 w-2/3 mx-auto">
+        <div className="p-8">
             <ProductsDataTable products={products?.items ?? []} />
 
             <AppDialog>

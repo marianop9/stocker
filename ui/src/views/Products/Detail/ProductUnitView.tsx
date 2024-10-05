@@ -23,12 +23,13 @@ const currencyFmt = Intl.NumberFormat("es-AR", {
 
 function ProductUnitView() {
     const [productDialogOpen, setProductDialogOpen] = useState(false);
+    const [unitsDialogOpen, setUnitsDialogOpen] = useState(false);
 
     const product = useAppRouterLoaderData(productUnitLoader);
     const routeParams = useParams();
     const productId = routeParams["id"];
 
-    const { data: details } = useQuery({
+    const { data: details, refetch } = useQuery({
         queryKey: ["product-details", productId],
         enabled: productId !== undefined,
         queryFn: () => productUnitService.list(productId!),
@@ -41,6 +42,11 @@ function ProductUnitView() {
         revalidate();
         setProductDialogOpen(false);
     };
+
+    function handleUnitsCreated() {
+        refetch();
+        setUnitsDialogOpen(false);
+    }
 
     return (
         <>
@@ -78,7 +84,10 @@ function ProductUnitView() {
 
             <div className="mt-4 flex flex-col gap-2">
                 <h2 className="text-xl font-semibold">Detalles</h2>
-                <AppDialog>
+                <AppDialog
+                    open={unitsDialogOpen}
+                    onOpenChange={(x) => setUnitsDialogOpen(x)}
+                >
                     <AppDialogTrigger asChild>
                         <div>
                             <Button>Agregar detalles</Button>
@@ -88,6 +97,7 @@ function ProductUnitView() {
                         <ProductUnitForm
                             productId={product.id}
                             details={details ?? []}
+                            onSubmitted={handleUnitsCreated}
                         />
                     </AppDialogContent>
                 </AppDialog>
@@ -112,6 +122,10 @@ const productDetailsColumns: ColumnDef<IProductUnitView>[] = [
     {
         header: "Talle",
         accessorKey: "sizeAlias",
+    },
+    {
+        header: "Cantidad",
+        accessorKey: "quantity",
     },
 ];
 
