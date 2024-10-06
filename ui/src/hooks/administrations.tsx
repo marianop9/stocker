@@ -34,15 +34,27 @@ export function useProviders() {
 }
 
 export function useColors() {
-    return useQuery({
-        queryKey: ["colors"],
+    const queryKey = ["colors"];
+    const queryResult = useQuery({
+        queryKey,
         queryFn: colorService.list,
     });
+
+    return {
+        queryKey,
+        ...queryResult,
+    }
 }
 
 export function useSizes() {
-    return useQuery({
-        queryKey: ["sizes"],
+    const queryKey = ["sizes"];
+    const queryResult = useQuery({
+        queryKey,
         queryFn: sizeService.list,
     });
+
+    return {
+        queryKey,
+        ...queryResult,
+    }
 }

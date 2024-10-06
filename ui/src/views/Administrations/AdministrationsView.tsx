@@ -1,6 +1,8 @@
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import CategoriesTab from "./Categories/CategoriesTab";
 import ProvidersTab from "./Providers/ProvidersTab";
+import SizesTab from "./Sizes/SizesTab";
+import ColorsTab from "./Colors/ColorsTab";
 
 function AdminView() {
     return (
@@ -19,10 +21,10 @@ function AdminView() {
                     <ProvidersTab />
                 </TabsContent>
                 <TabsContent value="sizes">
-                    <h1>talles</h1>
+                    <SizesTab />
                 </TabsContent>
                 <TabsContent value="colors">
-                    <h1>colores</h1>
+                    <ColorsTab />
                 </TabsContent>
             </div>
         </Tabs>

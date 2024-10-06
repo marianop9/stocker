@@ -13,10 +13,12 @@ export interface IColor {
     id: string;
     name: string;
     hexcode: string;
+    code: string;
 }
 
 export interface ISize {
     id: string;
     alias: string;
+    code: string;
 }
     

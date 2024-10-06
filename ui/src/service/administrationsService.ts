@@ -51,19 +51,29 @@ export const providerService: IAdministrationService<IProvider> = {
 export const colorService: IAdministrationService<IColor> = {
     async list() {
         return await pbClient.colors.getFullList({
-            fields: "id, name, hexcode",
+            fields: "id, name, hexcode, code",
         });
     },
     async createUpdate(entity) {
-        return new ServiceSuccess(entity);
+        const promise =
+            entity.id === ""
+                ? pbClient.colors.create(entity)
+                : pbClient.colors.update(entity.id, entity);
+
+        return executeService(promise);
     },
 };
 
 export const sizeService: IAdministrationService<ISize> = {
     async list() {
-        return await pbClient.sizes.getFullList({ fields: "id, alias" });
+        return await pbClient.sizes.getFullList({ fields: "id, alias, code" });
     },
     async createUpdate(entity) {
-        return new ServiceSuccess(entity);
+        const promise =
+            entity.id === ""
+                ? pbClient.sizes.create(entity)
+                : pbClient.sizes.update(entity.id, entity);
+
+        return executeService(promise);
     },
 };
