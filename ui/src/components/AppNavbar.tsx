@@ -25,8 +25,8 @@ function AppNavBar() {
     const { logout } = useAppAuth();
 
     return (
-        <nav className="flex justify-between p-2 bg-slate-700">
-            <div className="flex gap-x-4 text-white">
+        <nav className="flex justify-between p-2">
+            <div className="flex gap-x-4">
                 {items.map((item) => (
                     <NavLink
                         v-for="item in items"
@@ -34,9 +34,11 @@ function AppNavBar() {
                         to={item.url}
                         className={({ isActive }) =>
                             [
-                                "hover:bg-slate-500",
+                                // "hover:bg-accent/20",
                                 "rounded p-2",
-                                isActive ? "bg-slate-500" : "",
+                                isActive ? "bg-accent text-foreground" : "",
+                                "text-muted-foreground",
+                                "hover:text-foreground",
                             ].join(" ")
                         }
                     >

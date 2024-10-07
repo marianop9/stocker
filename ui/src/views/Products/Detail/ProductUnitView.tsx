@@ -70,7 +70,7 @@ function ProductUnitView() {
                         onOpenChange={setProductDialogOpen}
                     >
                         <AppDialogTrigger asChild>
-                            <Button className="mt-4">Modificar</Button>
+                            <Button className="mt-4" variant="secondary">Modificar</Button>
                         </AppDialogTrigger>
                         <AppDialogContent title="Modificar producto">
                             <ProductForm

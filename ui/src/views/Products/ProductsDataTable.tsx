@@ -25,7 +25,7 @@ const columns: ColumnDef<IProductView>[] = [
         id: "actions",
         cell({ row }) {
             return (
-                <Button asChild>
+                <Button asChild variant="secondary">
                     <Link to={"/products/" + row.getValue("id")}>Ver</Link>
                 </Button>
             );
