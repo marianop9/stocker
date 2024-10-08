@@ -1,14 +1,17 @@
-import { stockEntryService } from "@/service/movementService";
+import { movementService, stockEntryService } from "@/service/movementService";
 import { ActionFunction, redirect } from "react-router-dom";
 import { z } from "zod";
 
 const MovementFormSchema = z.object({
-    reference: z.string().min(1),
     date: z.string().date(),
+    type: z.enum(["IN", "OUT"]),
+    reference: z.string().max(200),
 });
 
-export type MovementFormSchemaErrors = z.inferFormattedError<typeof MovementFormSchema>
-export type MovementFormServerError = string
+export type MovementFormSchemaErrors = z.inferFormattedError<
+    typeof MovementFormSchema
+>;
+export type MovementFormServerError = string;
 
 export const movementFormActions: ActionFunction = async ({ request }) => {
     const form = await request.formData();
@@ -17,17 +20,16 @@ export const movementFormActions: ActionFunction = async ({ request }) => {
         Object.fromEntries(form),
     );
 
-    if (success) {
-        const response = await stockEntryService.create({
-            ...data,
-        });
+    if (!success) return error.format();
 
-        if (response.success) {
-            return redirect("/movements/" + response.data.id);
-        } else {
-            return response.error.response.message;
-        }
+    const response = await movementService.create({
+        id: "",
+        ...data,
+    });
+
+    if (response.success) {
+        return redirect("/movements/" + response.data.id);
+    } else {
+        return response.error.response.message;
     }
-
-    return error.format()
 };

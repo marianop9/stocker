@@ -5,7 +5,7 @@ import {
     AppDialogTrigger,
 } from "@/components/AppDialog";
 import { Button } from "@/components/ui/button";
-import { useSizes } from "@/hooks/administrations";
+import { useSizes } from "@/lib/hooks/useAdministrations";
 import { ISize } from "@/models/administrations";
 import { useQueryClient } from "@tanstack/react-query";
 import { ColumnDef, ColumnFilter } from "@tanstack/react-table";
@@ -61,7 +61,7 @@ function SizesTab() {
                     <Button
                         onClick={() => {
                             setEntityToEdit(row.original);
-                            setIsDialogOpen(true)
+                            setIsDialogOpen(true);
                         }}
                     >
                         Editar
@@ -75,9 +75,7 @@ function SizesTab() {
         <>
             <div className="mb-5 flex items-center bg-gray-100 p-4 rounded-md">
                 <GenericFilter<ISize>
-                    propertiesToFilter={[
-                        { key: "alias", label: "Alias" },
-                    ]}
+                    propertiesToFilter={[{ key: "alias", label: "Alias" }]}
                     onFilterChange={(f) => setFilter(f)}
                 />
 

@@ -8,7 +8,7 @@ function RootLayout() {
                 <AppNavBar />
             </header>
             <div className="grow bg-muted/50 p-4">
-                <div className="bg-background h-full w-full lg:w-3/4 mx-auto rounded p-4">
+                <div className="bg-background h-full w-full lg:w-3/4 mx-auto rounded p-6">
                     <Outlet />
                 </div>
             </div>

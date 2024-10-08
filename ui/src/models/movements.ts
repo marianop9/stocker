@@ -18,3 +18,28 @@ export interface IStockEntryProductView {
     productId: string;
     productName: string;
 }
+
+type MovementType = "IN" | "OUT";
+
+// export interface IMovementView {
+//     id: string;
+//     date: string;
+//     type: MovementType;
+//     reference: string;
+// }
+
+export interface IMovementDto {
+    id: string;
+    date: string;
+    type: MovementType;
+    reference: string;
+}
+
+interface IStockMovement {
+    id: string;
+    movementId: string;
+    productUnitId: string;
+    quantity: number;
+}
+
+export interface IStockEntry extends IStockMovement {}

@@ -1,12 +1,10 @@
 import AppFormEntry from "@/components/AppFormEntry";
 import AppSelect from "@/components/AppSelect";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useColors, useSizes } from "@/hooks/administrations";
-import { IColor, ISize } from "@/models/administrations";
-import { FormEventHandler, useMemo, useState } from "react";
+import { useColors, useSizes } from "@/lib/hooks/useAdministrations";
+import { useState } from "react";
 import {
     useForm,
     useFieldArray,

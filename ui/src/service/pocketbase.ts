@@ -4,7 +4,11 @@ import type {
     IProvider,
     ISize,
 } from "@/models/administrations";
-import { IStockEntryDto, IStockEntryProductDto } from "@/models/movements";
+import {
+    IMovementDto,
+    IStockEntryDto,
+    IStockEntryProductDto,
+} from "@/models/movements";
 import type {
     IProductUnitView,
     IProductDto,
@@ -66,6 +70,10 @@ class PocketBaseClient {
 
     get stockEntryProducts(): RecordService<IStockEntryProductDto> {
         return this.pb.collection("stock_entry_product");
+    }
+
+    get movements(): RecordService<IMovementDto> {
+        return this.pb.collection("movements");
     }
 }
 

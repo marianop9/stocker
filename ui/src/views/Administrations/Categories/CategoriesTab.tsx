@@ -5,7 +5,7 @@ import {
     AppDialogTrigger,
 } from "@/components/AppDialog";
 import { Button } from "@/components/ui/button";
-import { useCategories } from "@/hooks/administrations";
+import { useCategories } from "@/lib/hooks/useAdministrations";
 import { ICategory } from "@/models/administrations";
 import { useQueryClient } from "@tanstack/react-query";
 import { ColumnDef, ColumnFilter } from "@tanstack/react-table";

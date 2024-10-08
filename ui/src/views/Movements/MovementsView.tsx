@@ -1,16 +1,20 @@
 import { ColumnDef } from "@tanstack/react-table";
 import MovementForm from "./MovementForm";
-import { IStockEntryDto } from "@/models/movements";
+import { IMovementDto } from "@/models/movements";
 import { AppDataTable } from "@/components/AppDataTable";
 import { useQuery } from "@tanstack/react-query";
-import { stockEntryService } from "@/service/movementService";
+import { movementService } from "@/service/movementService";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-const colums: ColumnDef<IStockEntryDto>[] = [
+const colums: ColumnDef<IMovementDto>[] = [
     {
         header: "Id",
         accessorKey: "id",
+    },
+    {
+        header: "Tipo",
+        accessorKey: "type",
     },
     {
         header: "Fecha",
@@ -30,8 +34,8 @@ const colums: ColumnDef<IStockEntryDto>[] = [
 
 function MovementsView() {
     const { data } = useQuery({
-        queryKey: ["stock-entries"],
-        queryFn: stockEntryService.list,
+        queryKey: ["movements"],
+        queryFn: movementService.list,
     });
 
     return (

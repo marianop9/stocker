@@ -16,11 +16,12 @@ import { useQuery } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
 
 interface ProductSearchProps {
-    stockEntryId: string;
-    onSubmitted(result: IStockEntryProductDto): void;
+    // stockEntryId: string;
+    // onSubmitted(result: IStockEntryProductDto): void;
+    onSelected(product: IProductView): void;
 }
 
-function ProductSearch({ stockEntryId, onSubmitted }: ProductSearchProps) {
+function ProductSearch({ onSelected }: ProductSearchProps) {
     const [searchTerm, setSearchTerm] = useState("");
 
     const { data: results } = useQuery({
@@ -32,13 +33,19 @@ function ProductSearch({ stockEntryId, onSubmitted }: ProductSearchProps) {
     return (
         <AppSearchInput onSearchTermChange={setSearchTerm}>
             <ul>
-                {results?.map((result) => (
-                    <li key={result.id}>
-                        <ProductSearchItemDialog
+                {results?.map((product) => (
+                    <li key={product.id}>
+                        {/* <ProductSearchItemDialog
                             stockEntryId={stockEntryId}
                             product={result}
                             onSubmitted={onSubmitted}
-                        />
+                        /> */}
+                        <div
+                            className="cursor-pointer"
+                            onClick={() => onSelected(product)}
+                        >
+                            {product.name}
+                        </div>
                     </li>
                 ))}
             </ul>
@@ -79,26 +86,27 @@ function ProductSearchItemDialog({
     };
 
     return (
-        <AppDialog open={open} onOpenChange={setOpen}>
-            <AppDialogTrigger>{product.name}</AppDialogTrigger>
-            <AppDialogContent title={product.name}>
-                <form onSubmit={handleSubmit}>
-                    <AppFormEntry name="price" label="Precio unitario">
-                        <Input
-                            type="number"
-                            name="price"
-                            value={price}
-                            onChange={(e) =>
-                                setPrice(Number.parseFloat(e.target.value))
-                            }
-                        />
-                    </AppFormEntry>
-                    <AppDialogFooter>
-                        <Button>Agregar producto</Button>
-                    </AppDialogFooter>
-                </form>
-            </AppDialogContent>
-        </AppDialog>
+        // <AppDialog open={open} onOpenChange={setOpen}>
+        //     <AppDialogTrigger>{product.name}</AppDialogTrigger>
+        //     <AppDialogContent title={product.name}>
+        //         <form onSubmit={handleSubmit}>
+        //             <AppFormEntry name="price" label="Precio unitario">
+        //                 <Input
+        //                     type="number"
+        //                     name="price"
+        //                     value={price}
+        //                     onChange={(e) =>
+        //                         setPrice(Number.parseFloat(e.target.value))
+        //                     }
+        //                 />
+        //             </AppFormEntry>
+        //             <AppDialogFooter>
+        //                 <Button>Agregar producto</Button>
+        //             </AppDialogFooter>
+        //         </form>
+        //     </AppDialogContent>
+        // </AppDialog>
+        <div className="cursor-pointer">{product.name}</div>
     );
 }
 

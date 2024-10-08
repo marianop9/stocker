@@ -5,7 +5,7 @@ import {
     AppDialogTrigger,
 } from "@/components/AppDialog";
 import { Button } from "@/components/ui/button";
-import { useColors } from "@/hooks/administrations";
+import { useColors } from "@/lib/hooks/useAdministrations";
 import { IColor } from "@/models/administrations";
 import { useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";

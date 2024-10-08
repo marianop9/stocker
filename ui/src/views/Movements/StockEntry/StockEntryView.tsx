@@ -9,44 +9,59 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { stockEntryProductService } from "@/service/movementService";
-import { productService, productUnitService } from "@/service/productService";
+import { productService } from "@/service/productService";
 import { Button } from "@/components/ui/button";
-import { AppDialog, AppDialogContent, AppDialogTrigger } from "@/components/AppDialog";
+import {
+    AppDialog,
+    AppDialogContent,
+    AppDialogTrigger,
+} from "@/components/AppDialog";
 import StockEntryProductUnitForm from "./StockEntryProductUnitForm";
+import { useState } from "react";
+import { IProductView } from "@/models/products";
+import StockEntryAddProductsDialog from "./StockEntryAddProductsDialog";
 
 function StockEntryView() {
-    const stockEntry = useAppRouterLoaderData(stockEntryViewLoader);
+    const movement = useAppRouterLoaderData(stockEntryViewLoader);
+
+    const [isAddProductsDialogOpen, setIsAddProductsDialogOpen] =
+        useState(false);
+
+    const [selecetedProduct, setSelectedProduct] =
+        useState<IProductView | null>(null);
 
     const { data: stockEntryProducts, refetch } = useQuery({
-        queryKey: ["stock-entry-products", stockEntry.id],
-        queryFn: () => stockEntryProductService.list(stockEntry.id!),
-        enabled: !!stockEntry.id,
+        queryKey: ["stock-entry-products", movement.id],
+        queryFn: () => stockEntryProductService.list(movement.id!),
+        enabled: !!movement.id,
     });
 
     return (
         <>
-            <div className="p-4 w-1/2">
-                <AppFormEntry label="Referencia" name="reference">
-                    <Input disabled value={stockEntry.reference} />
+            <div className="w-1/3">
+                <AppFormEntry label="Tipo" name="type">
+                    <Input type="type" disabled value={movement.type} />
                 </AppFormEntry>
                 <AppFormEntry label="Fecha" name="date">
                     <Input
                         type="date"
                         disabled
-                        value={stockEntry.date.split(" ")[0]}
+                        value={movement.date.split(" ")[0]}
                     />
+                </AppFormEntry>
+                <AppFormEntry label="Referencia" name="reference">
+                    <Input disabled value={movement.reference} />
                 </AppFormEntry>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-4">
                 <div>
                     <ProductSearch
-                        stockEntryId={stockEntry.id!}
-                        onSubmitted={(result) => {
-                            console.log(result);
-                            refetch();
+                        onSelected={(product) => {
+                            setIsAddProductsDialogOpen(true);
+                            setSelectedProduct(product);
                         }}
                     />
                 </div>
@@ -61,35 +76,46 @@ function StockEntryView() {
                                     {stockEntryProd.productName}
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <StockEntryProductDetail productId={stockEntryProd.productId} unitPrice={stockEntryProd.unitPrice} />
+                                    <StockEntryProductDetail
+                                        productId={stockEntryProd.productId}
+                                        unitPrice={stockEntryProd.unitPrice}
+                                    />
                                 </AccordionContent>
                             </AccordionItem>
                         ))}
                     </Accordion>
                 </div>
             </div>
+
+            <StockEntryAddProductsDialog
+                open={isAddProductsDialogOpen}
+                onOpenChange={setIsAddProductsDialogOpen}
+                product={selecetedProduct}
+            />
         </>
     );
 }
 
 interface StockEntryProductDetailProps {
-    productId: string
-    unitPrice: number
+    productId: string;
+    unitPrice: number;
 }
-function StockEntryProductDetail({ productId, unitPrice }: StockEntryProductDetailProps) {
+function StockEntryProductDetail({
+    productId,
+    unitPrice,
+}: StockEntryProductDetailProps) {
     const { data, isLoading } = useQuery({
         queryKey: ["stockEntryProductDetail", productId],
         queryFn: () => productService.get(productId),
-    })
+    });
 
     if (isLoading || !data) {
-        return <div>loading...</div>
+        return <div>loading...</div>;
     }
 
     return (
         <div className="flex justify-around p-4">
             <div>
-
                 <div>
                     <span>Categoria: </span>
                     <span>{data.categoryName}</span>
@@ -117,7 +143,7 @@ function StockEntryProductDetail({ productId, unitPrice }: StockEntryProductDeta
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
 export default StockEntryView;

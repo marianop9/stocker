@@ -1,8 +1,8 @@
-import { stockEntryService } from "@/service/movementService";
+import { movementService } from "@/service/movementService";
 import { LoaderFunction } from "react-router-dom";
 
 export const stockEntryViewLoader = function ({ params }) {
     const id = params["id"] ?? "";
 
-    return stockEntryService.get(id);
+    return movementService.get(id);
 } satisfies LoaderFunction;

@@ -5,7 +5,7 @@ import {
     AppDialogContent,
 } from "@/components/AppDialog";
 import { Button } from "@/components/ui/button";
-import { useProviders } from "@/hooks/administrations";
+import { useProviders } from "@/lib/hooks/useAdministrations";
 import { IProvider } from "@/models/administrations";
 import { ColumnDef, ColumnFilter } from "@tanstack/react-table";
 import { useState } from "react";

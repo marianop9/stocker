@@ -29,10 +29,14 @@ function AppFormEntry({
             {children}
             <div>
                 <p className="text-xs">{helperText}</p>
-                <p className="text-xs text-red-600">{errorMsg}</p>
+                <AppFormValidationMessage message={errorMsg} />
             </div>
         </div>
     );
 }
 
 export default AppFormEntry;
+
+export function AppFormValidationMessage({ message }: { message?: string }) {
+    return <p className="text-xs text-red-600">{message}</p>;
+}

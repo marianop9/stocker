@@ -1,4 +1,5 @@
 import {
+    IMovementDto,
     IStockEntryDto,
     IStockEntryProductDto,
     IStockEntryProductView,
@@ -70,5 +71,25 @@ export const stockEntryProductService: IStockEntryProductService = {
         );
 
         return response;
+    },
+};
+
+interface IMovementService {
+    list(): Promise<ListResult<IMovementDto>>;
+    get(id: string): Promise<IMovementDto>;
+    create(entity: IMovementDto): Promise<ServiceResponse<IMovementDto>>;
+}
+
+export const movementService: IMovementService = {
+    list() {
+        return pbClient.movements.getList();
+    },
+    get(id) {
+        return pbClient.movements.getOne(id);
+    },
+    async create(entity: IMovementDto) {
+        const promise = pbClient.movements.create(entity);
+
+        return executeService(promise);
     },
 };
