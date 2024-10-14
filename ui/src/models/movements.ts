@@ -1,22 +1,8 @@
-export interface IStockEntryDto {
-    id?: string;
-    reference: string;
-    date: string;
-}
-
 export interface IStockEntryProductDto {
     id?: string;
     stockEntryId: string;
     productId: string;
     unitPrice: number;
-}
-
-export interface IStockEntryProductView {
-    id: string;
-    stockEntryId: string;
-    unitPrice: number;
-    productId: string;
-    productName: string;
 }
 
 type MovementType = "IN" | "OUT";
@@ -42,4 +28,30 @@ interface IStockMovement {
     quantity: number;
 }
 
-export interface IStockEntry extends IStockMovement {}
+export interface IStockEntryDto extends IStockMovement {}
+
+// pocketbase view collection
+export interface IStockEntryProductDto {
+    stockEntryId: string;
+    movementId: string;
+    quantity: number;
+    productId: string;
+    name: string;
+    productUnitId: string;
+    colorName: string;
+    sizeAlias: string;
+}
+
+// derived from IStockEntryProductDto
+export interface IStockEntryProductView {
+    productId: string;
+    name: string;
+    movementId: string;
+    units: {
+        stockEntryId: string;
+        quantity: number;
+        productUnitId: string;
+        colorName: string;
+        sizeAlias: string;
+    }[];
+}

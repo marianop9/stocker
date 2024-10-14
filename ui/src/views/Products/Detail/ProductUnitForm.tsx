@@ -80,9 +80,10 @@ function ProductUnitForm({ productId, details, onSubmitted }: Props) {
         }
         console.log(dtos);
 
-        const responseSuccess = await productUnitService.createBatch(dtos);
+        const response = await productUnitService.createBatch(dtos);
+        console.log(response);
 
-        if (!responseSuccess) {
+        if (!response.success) {
             console.error(
                 "ocurrió un error al intentar crear las unidades, implementar...",
             );

@@ -17,6 +17,10 @@ import type {
 import IUser from "@/models/user";
 import Client, { RecordService } from "pocketbase";
 
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+type CustomEndpointResponse = any;
+
 class PocketBaseClient {
     private pb: Client;
 
@@ -30,6 +34,20 @@ class PocketBaseClient {
 
     getInternalClient() {
         return this.pb;
+    }
+
+    callCustomEndpoint<T = CustomEndpointResponse>(
+        module: string,
+        action: string,
+        body: any,
+        method: HttpMethod = "POST",
+    ): Promise<T> {
+        const url = `/api/custom/${module}/${action}`;
+
+        return this.getInternalClient().send<T>(url, {
+            body,
+            method,
+        });
     }
 
     get users(): RecordService<IUser> {
@@ -65,15 +83,15 @@ class PocketBaseClient {
     }
 
     get stockEntries(): RecordService<IStockEntryDto> {
-        return this.pb.collection("stock_entry");
-    }
-
-    get stockEntryProducts(): RecordService<IStockEntryProductDto> {
-        return this.pb.collection("stock_entry_product");
+        return this.pb.collection("stock_entries");
     }
 
     get movements(): RecordService<IMovementDto> {
         return this.pb.collection("movements");
+    }
+
+    get stockEntryProductsView(): RecordService<IStockEntryProductDto> {
+        return this.pb.collection("stock_entry_products_view");
     }
 }
 

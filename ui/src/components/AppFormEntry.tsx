@@ -23,9 +23,14 @@ function AppFormEntry({
 
     return (
         <div
-            className={`flex flex-col gap-2 mb-2 justify-between ${disabled ? "text-muted-foreground" : ""} ${className}`}
+            className={`flex flex-col gap-2 mb-2 justify-between ${className ?? ""}`}
         >
-            <Label htmlFor={name}>{label}</Label>
+            <Label
+                htmlFor={name}
+                className={`${disabled ? "text-muted-foreground" : ""}`}
+            >
+                {label}
+            </Label>
             {children}
             <div>
                 <p className="text-xs">{helperText}</p>

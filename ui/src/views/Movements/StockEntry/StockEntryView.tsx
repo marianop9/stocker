@@ -10,18 +10,18 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useQuery } from "@tanstack/react-query";
-import { stockEntryProductService } from "@/service/movementService";
-import { productService } from "@/service/productService";
 import { Button } from "@/components/ui/button";
 import {
     AppDialog,
     AppDialogContent,
     AppDialogTrigger,
 } from "@/components/AppDialog";
-import StockEntryProductUnitForm from "./StockEntryProductUnitForm";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { IProductView } from "@/models/products";
 import StockEntryAddProductsDialog from "./StockEntryAddProductsDialog";
+import { stockEntryService } from "@/service/movementService";
+import { IStockEntryProductView } from "@/models/movements";
+import MovementOverview from "../MovementOverview";
 
 function StockEntryView() {
     const movement = useAppRouterLoaderData(stockEntryViewLoader);
@@ -32,32 +32,20 @@ function StockEntryView() {
     const [selecetedProduct, setSelectedProduct] =
         useState<IProductView | null>(null);
 
-    const { data: stockEntryProducts, refetch } = useQuery({
+    const { data: stockEntryProducts } = useQuery({
         queryKey: ["stock-entry-products", movement.id],
-        queryFn: () => stockEntryProductService.list(movement.id!),
         enabled: !!movement.id,
+        queryFn: () => stockEntryService.listProducts(movement.id!),
     });
 
     return (
         <>
             <div className="w-1/3">
-                <AppFormEntry label="Tipo" name="type">
-                    <Input type="type" disabled value={movement.type} />
-                </AppFormEntry>
-                <AppFormEntry label="Fecha" name="date">
-                    <Input
-                        type="date"
-                        disabled
-                        value={movement.date.split(" ")[0]}
-                    />
-                </AppFormEntry>
-                <AppFormEntry label="Referencia" name="reference">
-                    <Input disabled value={movement.reference} />
-                </AppFormEntry>
+                <MovementOverview movement={movement} />
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-4">
-                <div>
+                <div className="">
                     <ProductSearch
                         onSelected={(product) => {
                             setIsAddProductsDialogOpen(true);
@@ -65,85 +53,176 @@ function StockEntryView() {
                         }}
                     />
                 </div>
-                <div>
-                    <Accordion type="single" collapsible>
-                        {stockEntryProducts?.map((stockEntryProd) => (
-                            <AccordionItem
-                                key={stockEntryProd.id}
-                                value={stockEntryProd.id}
-                            >
-                                <AccordionTrigger>
-                                    {stockEntryProd.productName}
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <StockEntryProductDetail
-                                        productId={stockEntryProd.productId}
-                                        unitPrice={stockEntryProd.unitPrice}
-                                    />
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
-                </div>
+                <StockEntryProductDetails
+                    stockEntryProducts={stockEntryProducts ?? []}
+                />
             </div>
 
             <StockEntryAddProductsDialog
                 open={isAddProductsDialogOpen}
                 onOpenChange={setIsAddProductsDialogOpen}
+                movement={movement}
                 product={selecetedProduct}
             />
         </>
     );
 }
 
-interface StockEntryProductDetailProps {
-    productId: string;
-    unitPrice: number;
-}
-function StockEntryProductDetail({
-    productId,
-    unitPrice,
-}: StockEntryProductDetailProps) {
-    const { data, isLoading } = useQuery({
-        queryKey: ["stockEntryProductDetail", productId],
-        queryFn: () => productService.get(productId),
-    });
+export default StockEntryView;
 
-    if (isLoading || !data) {
-        return <div>loading...</div>;
+interface StockEntryProductDetailsProps {
+    stockEntryProducts: IStockEntryProductView[];
+}
+function StockEntryProductDetails({
+    stockEntryProducts,
+}: StockEntryProductDetailsProps) {
+    const [errorMsg, setErrorMsg] = useState("");
+
+    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const fdata = new FormData(e.currentTarget);
+
+        const qty = parseInt(fdata.get("quantity") as string);
+        setErrorMsg("");
+        if (isNaN(qty) || qty < 0) {
+            setErrorMsg("Ingrese una cantidad mayor a 0.");
+            return;
+        }
+
+        const stockEntryId = fdata.get("stockEntryId") as string;
+
+        const result = await stockEntryService.setQuantity(stockEntryId, qty);
+        if (!result.success) {
+            setErrorMsg("ocurrió un error al ejecutar el servicio");
+            console.error(result.error);
+        }
     }
 
     return (
-        <div className="flex justify-around p-4">
-            <div>
-                <div>
-                    <span>Categoria: </span>
-                    <span>{data.categoryName}</span>
-                </div>
-                <div>
-                    <span>Proveedor: </span>
-                    <span>{data.providerName}</span>
-                </div>
-                <div>
-                    <span>Precio: </span>
-                    <span>{unitPrice}</span>
-                </div>
-            </div>
-            <div>
-                <div className="flex">
-                    <h3>Unidades</h3>
-                    <AppDialog>
-                        <AppDialogTrigger asChild>
-                            <Button size={"sm"}>Editar</Button>
-                        </AppDialogTrigger>
-                        <AppDialogContent title="Editar unidades">
-                            <StockEntryProductUnitForm />
-                        </AppDialogContent>
-                    </AppDialog>
-                </div>
-            </div>
-        </div>
+        <Accordion type="single" collapsible>
+            {stockEntryProducts.map((stockEntryProd) => (
+                <AccordionItem
+                    key={stockEntryProd.productId}
+                    value={stockEntryProd.productId}
+                >
+                    <AccordionTrigger className="px-2 rounded-sm data-[state=open]:text-primary">
+                        {stockEntryProd.name}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <table className="table-fixed w-full border">
+                            <thead className="bg-muted">
+                                <tr>
+                                    <td className="p-2">Color</td>
+                                    <td className="p-2">Talle</td>
+                                    <td className="p-2">Cantidad</td>
+                                    <td className="p-2"></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {stockEntryProd.units.map((unit) => (
+                                    <tr
+                                        key={unit.productUnitId}
+                                        className="border"
+                                    >
+                                        <td className="p-2">
+                                            {unit.colorName}
+                                        </td>
+                                        <td className="p-2">
+                                            {unit.sizeAlias}
+                                        </td>
+                                        <td className="p-2">{unit.quantity}</td>
+                                        <td className="p-2">
+                                            <AppDialog>
+                                                <AppDialogTrigger asChild>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="link"
+                                                    >
+                                                        Editar
+                                                    </Button>
+                                                </AppDialogTrigger>
+                                                <AppDialogContent title="Editar entrada">
+                                                    <div className="flex justify-between">
+                                                        <AppFormEntry
+                                                            label="Nombre"
+                                                            name=""
+                                                            disabled
+                                                        >
+                                                            <span>
+                                                                {
+                                                                    stockEntryProd.name
+                                                                }
+                                                            </span>
+                                                        </AppFormEntry>
+                                                        <AppFormEntry
+                                                            label="Color"
+                                                            name=""
+                                                            disabled
+                                                        >
+                                                            <span>
+                                                                {unit.colorName}
+                                                            </span>
+                                                        </AppFormEntry>
+                                                        <AppFormEntry
+                                                            label="Talle"
+                                                            name=""
+                                                            disabled
+                                                        >
+                                                            <span>
+                                                                {unit.sizeAlias}
+                                                            </span>
+                                                        </AppFormEntry>
+                                                    </div>
+                                                    <form
+                                                        onSubmit={handleSubmit}
+                                                        className="flex justify-center items-center gap-x-4"
+                                                    >
+                                                        <input
+                                                            name="stockEntryId"
+                                                            defaultValue={
+                                                                unit.stockEntryId
+                                                            }
+                                                            hidden
+                                                        />
+                                                        <AppFormEntry
+                                                            label="Cantidad"
+                                                            name="quantity"
+                                                            errors={errorMsg}
+                                                        >
+                                                            <Input
+                                                                name="quantity"
+                                                                type="number"
+                                                                step="1"
+                                                                autoFocus
+                                                                onFocus={(e) =>
+                                                                    e.target.select()
+                                                                }
+                                                                defaultValue={
+                                                                    unit.quantity
+                                                                }
+                                                                onSubmit={(e) =>
+                                                                    console.log(
+                                                                        e
+                                                                            .currentTarget
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                            />
+                                                        </AppFormEntry>
+                                                        <Button type="submit">
+                                                            Guardar
+                                                        </Button>
+                                                    </form>
+                                                </AppDialogContent>
+                                            </AppDialog>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </AccordionContent>
+                </AccordionItem>
+            ))}
+        </Accordion>
     );
 }
-
-export default StockEntryView;

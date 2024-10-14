@@ -25,7 +25,7 @@ export const productService: IProductSerivce = {
         return pbClient.productsView.getOne(id);
     },
     async find(name: string) {
-        return pbClient.productsView.getFullList(20, {
+        return pbClient.productsView.getFullList(10, {
             filter: `name ~ '${name}'`,
         });
     },
@@ -43,7 +43,7 @@ export const productService: IProductSerivce = {
 
 interface IProductUnitService {
     list(productId: string): Promise<IProductUnitView[]>;
-    createBatch(dtos: IProductUnitDto[]): Promise<boolean>;
+    createBatch(dtos: IProductUnitDto[]): Promise<ServiceResponse<any>>;
 }
 
 export const productUnitService: IProductUnitService = {
@@ -53,13 +53,12 @@ export const productUnitService: IProductUnitService = {
         });
     },
     async createBatch(dtos) {
-        const success: boolean = await pbClient
-            .getInternalClient()
-            .send("/api/custom/productUnits/createBatch", {
-                body: dtos,
-                method: "POST",
-            });
+        const promise = await pbClient.callCustomEndpoint(
+            "productUnits",
+            "createBatch",
+            dtos,
+        );
 
-        return success;
+        return executeService(promise);
     },
 };

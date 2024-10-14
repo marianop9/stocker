@@ -43,20 +43,20 @@ function isClientResponseError(err: unknown): err is ClientResponseError {
     );
 }
 
+// if service fails check if it is a pocketbase error, otherwise throw.
+// if service executed succesfully, return the result
 export async function executeService<T>(
     promise: Promise<T>,
 ): Promise<ServiceResponse<T>> {
-    try {
-        const result = await promise;
-
-        return new ServiceSuccess(result);
-    } catch (error) {
-        if (isClientResponseError(error)) {
-            const resp = new ServiceError(error);
-            console.error(resp);
-            return resp;
-        } else {
-            throw error;
-        }
-    }
+    return promise
+        .then((result) => new ServiceSuccess(result))
+        .catch((error) => {
+            if (isClientResponseError(error)) {
+                const resp = new ServiceError(error);
+                console.error(resp);
+                return resp;
+            } else {
+                throw error;
+            }
+        });
 }

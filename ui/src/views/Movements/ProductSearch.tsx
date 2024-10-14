@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IStockEntryProductDto } from "@/models/movements";
 import { IProductView } from "@/models/products";
-import { stockEntryProductService } from "@/service/movementService";
 import { productService } from "@/service/productService";
 import { useQuery } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
@@ -66,24 +65,24 @@ function ProductSearchItemDialog({
     const [price, setPrice] = useState(0);
     const [open, setOpen] = useState(false);
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    // const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    //     e.preventDefault();
 
-        // add product to stock entry
-        const response = await stockEntryProductService.addProduct({
-            stockEntryId,
-            productId: product.id,
-            unitPrice: price,
-        });
+    //     // add product to stock entry
+    //     const response = await stockEntryProductService.addProduct({
+    //         stockEntryId,
+    //         productId: product.id,
+    //         unitPrice: price,
+    //     });
 
-        if (response.success) {
-            // notify success response to parents
-            onSubmitted(response.data);
-            setOpen(false);
-        } else {
-            console.error(response.error);
-        }
-    };
+    //     if (response.success) {
+    //         // notify success response to parents
+    //         onSubmitted(response.data);
+    //         setOpen(false);
+    //     } else {
+    //         console.error(response.error);
+    //     }
+    // };
 
     return (
         // <AppDialog open={open} onOpenChange={setOpen}>

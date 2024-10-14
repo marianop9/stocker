@@ -11,17 +11,18 @@ import (
 	"github.com/pocketbase/pocketbase/models"
 )
 
-const module = "productUnits"
+const module = stocker.ModuleProductUnits
 
-func RegisterProductUnits(stocker *stocker.StockerApp) {
+func RegisterProductUnitsHandlers(app *stocker.StockerApp) {
 	type ProductUnitDto struct {
 		ProductId string `json:"productId"`
 		ColorId   string `json:"colorId"`
 		SizeId    string `json:"sizeId"`
+		Sku       string `json:"sku"`
 		Quantity  int    `json:"quantity"`
 	}
 
-	stocker.AddCustomHandler(module, "createBatch", http.MethodPost, func(c echo.Context) error {
+	app.AddCustomHandler(module, "createBatch", http.MethodPost, func(c echo.Context) error {
 		var dtos []ProductUnitDto
 
 		c.Bind(&dtos)
@@ -30,25 +31,29 @@ func RegisterProductUnits(stocker *stocker.StockerApp) {
 			fmt.Printf("%#v", dto)
 		}
 
-		collection, err := stocker.PbApp.Dao().FindCollectionByNameOrId("product_units")
+		collection, err := app.PbApp.Dao().FindCollectionByNameOrId("product_units")
 		if err != nil {
 			return err
 		}
 
-		err = stocker.PbApp.Dao().RunInTransaction(func(txDao *daos.Dao) error {
+		err = app.PbApp.Dao().RunInTransaction(func(txDao *daos.Dao) error {
 			for _, dto := range dtos {
 				record := models.NewRecord(collection)
 
-				form := forms.NewRecordUpsert(stocker.PbApp, record)
+				form := forms.NewRecordUpsert(app.PbApp, record)
 				form.SetDao(txDao)
 
-				form.LoadData(map[string]any{
+				err := form.LoadData(map[string]any{
 					"productId": dto.ProductId,
 					"colorId":   dto.ColorId,
 					"sizeId":    dto.SizeId,
 					"sku":       "sku-todo",
 					"quantity":  dto.Quantity,
 				})
+
+				if err != nil {
+					return err
+				}
 
 				if err := form.Submit(); err != nil {
 					return err
@@ -61,7 +66,9 @@ func RegisterProductUnits(stocker *stocker.StockerApp) {
 		if err != nil {
 			return err
 		}
-		return c.JSON(200, map[string]bool{"success": true})
 
+		return c.JSON(200, map[string]int{
+			"len": len(dtos),
+		})
 	})
 }

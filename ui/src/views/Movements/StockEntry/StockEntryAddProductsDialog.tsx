@@ -10,7 +10,9 @@ import AppFormEntry, {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { IMovementDto, IStockEntryDto } from "@/models/movements";
 import { IProductUnitView, IProductView } from "@/models/products";
+import { stockEntryService } from "@/service/movementService";
 import { productUnitService } from "@/service/productService";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
@@ -19,6 +21,7 @@ import { useState } from "react";
 interface Props {
     open: boolean;
     onOpenChange(open: boolean): void;
+    movement: IMovementDto;
     product: IProductView | null;
 }
 
@@ -53,7 +56,12 @@ const columns: ColumnDef<IProductUnitView>[] = [
     },
 ];
 
-function StockEntryAddProductsDialog({ open, onOpenChange, product }: Props) {
+function StockEntryAddProductsDialog({
+    open,
+    onOpenChange,
+    movement,
+    product,
+}: Props) {
     if (!product) return <></>;
 
     const { data: productUnits = [] } = useQuery({
@@ -66,7 +74,7 @@ function StockEntryAddProductsDialog({ open, onOpenChange, product }: Props) {
     const [quantityValidation, setQuantityValidation] = useState("");
     const [selectedRowsValidation, setSelectedRowsValidation] = useState("");
 
-    function handleSave() {
+    async function handleSave() {
         setQuantityValidation("");
         const qty = parseInt(quantity);
         if (isNaN(qty) || qty <= 0) {
@@ -81,6 +89,21 @@ function StockEntryAddProductsDialog({ open, onOpenChange, product }: Props) {
             setSelectedRowsValidation("Seleccione al menos una unidad.");
             return;
         }
+
+        const stockEntries: IStockEntryDto[] = selectedUnitIds.map(
+            (prodUnitId) => ({
+                id: "",
+                movementId: movement.id,
+                productUnitId: prodUnitId,
+                quantity: qty,
+            }),
+        );
+
+        const response = await stockEntryService.create(stockEntries);
+
+        if (!response.success) {
+            console.error(response.error);
+        }
     }
 
     return (
@@ -93,7 +116,12 @@ function StockEntryAddProductsDialog({ open, onOpenChange, product }: Props) {
                     <div>{product.name}</div>
                 </div>
                 <div className="flex justify-between">
-                    <AppFormEntry label="Precio" name="price" className="w-1/3">
+                    <AppFormEntry
+                        label="Precio"
+                        name="price"
+                        className="w-1/3"
+                        disabled
+                    >
                         <Input
                             type="number"
                             defaultValue={product.price}
@@ -114,9 +142,9 @@ function StockEntryAddProductsDialog({ open, onOpenChange, product }: Props) {
                     </AppFormEntry>
                 </div>
                 <AppDataTable
-                    getRowId={(row) => row.id}
                     columns={columns}
                     data={productUnits}
+                    getRowId={(row) => row.id}
                     rowSelection={selectedRows}
                     onRowSelectionChange={setSelectedRows}
                 />

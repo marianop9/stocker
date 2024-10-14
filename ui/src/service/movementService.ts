@@ -1,78 +1,11 @@
 import {
     IMovementDto,
     IStockEntryDto,
-    IStockEntryProductDto,
     IStockEntryProductView,
 } from "@/models/movements";
 import { executeService, ServiceResponse } from "./serviceResponse";
 import { pbClient } from "./pocketbase";
 import { ListResult } from "pocketbase";
-
-export interface IStockEntryService {
-    list(): Promise<ListResult<IStockEntryDto>>;
-    get(id: string): Promise<IStockEntryDto>;
-    create(dto: IStockEntryDto): Promise<ServiceResponse<IStockEntryDto>>;
-}
-
-export const stockEntryService: IStockEntryService = {
-    async list() {
-        return pbClient.stockEntries.getList(1, 15);
-    },
-    async get(id) {
-        return pbClient.stockEntries.getOne(id, {
-            fields: "id, reference, date",
-        });
-    },
-    async create(dto) {
-        const response = await executeService(
-            pbClient.stockEntries.create<IStockEntryDto>(dto),
-        );
-
-        return response;
-    },
-};
-
-export interface IStockEntryProductService {
-    list(stockEntryId: string): Promise<IStockEntryProductView[]>;
-    addProduct(
-        dto: IStockEntryProductDto,
-    ): Promise<ServiceResponse<IStockEntryProductDto>>;
-}
-
-export const stockEntryProductService: IStockEntryProductService = {
-    async list(stockEntryId) {
-        type stockEntryProductListResponse = IStockEntryProductDto & {
-            expand: {
-                productId: {
-                    name: string;
-                };
-            };
-        };
-        const result =
-            await pbClient.stockEntryProducts.getFullList<stockEntryProductListResponse>(
-                {
-                    filter: `stockEntryId = '${stockEntryId}'`,
-                    expand: "productId",
-                    fields: "*, expand.productId.name",
-                },
-            );
-
-        return result.map((r) => ({
-            id: r.id ?? "",
-            stockEntryId: r.stockEntryId,
-            unitPrice: r.unitPrice,
-            productId: r.productId,
-            productName: r.expand.productId.name,
-        }));
-    },
-    async addProduct(dto) {
-        const response = await executeService(
-            pbClient.stockEntryProducts.create(dto),
-        );
-
-        return response;
-    },
-};
 
 interface IMovementService {
     list(): Promise<ListResult<IMovementDto>>;
@@ -87,8 +20,76 @@ export const movementService: IMovementService = {
     get(id) {
         return pbClient.movements.getOne(id);
     },
-    async create(entity: IMovementDto) {
+    create(entity: IMovementDto) {
         const promise = pbClient.movements.create(entity);
+
+        return executeService(promise);
+    },
+};
+
+interface IStockEntryService {
+    listProducts(movementId: string): Promise<IStockEntryProductView[]>;
+    create(entity: IStockEntryDto[]): Promise<ServiceResponse<unknown>>;
+    setQuantity(
+        stockEntryId: string,
+        qty: number,
+    ): Promise<ServiceResponse<IStockEntryDto>>;
+}
+
+export const stockEntryService: IStockEntryService = {
+    async listProducts(movementId: string) {
+        const result = await pbClient.stockEntryProductsView.getFullList({
+            filter: `movementId='${movementId}'`,
+        });
+
+        const view: IStockEntryProductView[] = [];
+
+        for (const dto of result) {
+            const idx = view.findIndex((v) => v.productId === dto.productId);
+
+            if (idx >= 0) {
+                view[idx].units.push({
+                    stockEntryId: dto.stockEntryId,
+                    quantity: dto.quantity,
+                    productUnitId: dto.productUnitId,
+                    colorName: dto.colorName,
+                    sizeAlias: dto.sizeAlias,
+                });
+            } else {
+                view.push({
+                    movementId: dto.movementId,
+                    productId: dto.productId,
+                    name: dto.name,
+                    units: [
+                        {
+                            stockEntryId: dto.stockEntryId,
+                            quantity: dto.quantity,
+                            productUnitId: dto.productUnitId,
+                            colorName: dto.colorName,
+                            sizeAlias: dto.sizeAlias,
+                        },
+                    ],
+                });
+            }
+        }
+
+        console.log(view);
+
+        return view;
+    },
+    create(entity: IStockEntryDto[]) {
+        const promise = pbClient.callCustomEndpoint(
+            "movements",
+            "createStockEntry",
+            entity,
+        );
+
+        return executeService(promise);
+    },
+    setQuantity(stockEntryId, quantity) {
+        const promise = pbClient.stockEntries.update(stockEntryId, {
+            quantity: quantity,
+        });
 
         return executeService(promise);
     },

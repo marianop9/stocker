@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/marianop9/stocker/app/migrations"
 	"github.com/marianop9/stocker/app/stocker"
+	"github.com/marianop9/stocker/app/stocker/movements"
 	"github.com/marianop9/stocker/app/stocker/products"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
@@ -25,7 +26,8 @@ func main() {
 	})
 
 	stocker := stocker.NewStockerApp(app)
-	products.RegisterProductUnits(stocker)
+	products.RegisterProductUnitsHandlers(stocker)
+	movements.RegisterMovementsHandlers(stocker)
 
 	stocker.RegisterCustomHandlers()
 
