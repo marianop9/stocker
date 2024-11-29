@@ -60,6 +60,8 @@ export const stockEntryService: IStockEntryService = {
                     movementId: dto.movementId,
                     productId: dto.productId,
                     name: dto.name,
+                    cost: dto.cost,
+                    price: dto.price,
                     units: [
                         {
                             stockEntryId: dto.stockEntryId,

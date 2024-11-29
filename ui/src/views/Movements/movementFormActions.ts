@@ -1,4 +1,4 @@
-import { movementService, stockEntryService } from "@/service/movementService";
+import { movementService } from "@/service/movementService";
 import { ActionFunction, redirect } from "react-router-dom";
 import { z } from "zod";
 
@@ -24,6 +24,7 @@ export const movementFormActions: ActionFunction = async ({ request }) => {
 
     const response = await movementService.create({
         id: "",
+        state: "OPEN",
         ...data,
     });
 

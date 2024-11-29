@@ -30,7 +30,10 @@ function ProductSearch({ onSelected }: ProductSearchProps) {
     });
 
     return (
-        <AppSearchInput onSearchTermChange={setSearchTerm}>
+        <AppSearchInput
+            label="Búsqueda de Productos"
+            onSearchTermChange={setSearchTerm}
+        >
             <ul>
                 {results?.map((product) => (
                     <li key={product.id}>

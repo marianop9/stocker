@@ -1,23 +1,11 @@
-export interface IStockEntryProductDto {
-    id?: string;
-    stockEntryId: string;
-    productId: string;
-    unitPrice: number;
-}
-
-type MovementType = "IN" | "OUT";
-
-// export interface IMovementView {
-//     id: string;
-//     date: string;
-//     type: MovementType;
-//     reference: string;
-// }
+export type MovementType = "IN" | "OUT";
+export type MovementState = "OPEN" | "CLOSED";
 
 export interface IMovementDto {
     id: string;
     date: string;
     type: MovementType;
+    state: MovementState;
     reference: string;
 }
 
@@ -34,10 +22,12 @@ export interface IStockEntryDto extends IStockMovement {}
 export interface IStockEntryProductDto {
     stockEntryId: string;
     movementId: string;
+    productUnitId: string;
     quantity: number;
     productId: string;
     name: string;
-    productUnitId: string;
+    cost: number;
+    price: number;
     colorName: string;
     sizeAlias: string;
 }
@@ -46,6 +36,8 @@ export interface IStockEntryProductDto {
 export interface IStockEntryProductView {
     productId: string;
     name: string;
+    cost: number;
+    price: number;
     movementId: string;
     units: {
         stockEntryId: string;

@@ -20,7 +20,7 @@ import { FormEvent, useState } from "react";
 import { IProductView } from "@/models/products";
 import StockEntryAddProductsDialog from "./StockEntryAddProductsDialog";
 import { stockEntryService } from "@/service/movementService";
-import { IStockEntryProductView } from "@/models/movements";
+import { IMovementDto, IStockEntryProductView } from "@/models/movements";
 import MovementOverview from "../MovementOverview";
 
 function StockEntryView() {
@@ -44,7 +44,7 @@ function StockEntryView() {
                 <MovementOverview movement={movement} />
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-4">
+            <div className="mt-4 grid grid-cols-3 gap-8">
                 <div className="">
                     <ProductSearch
                         onSelected={(product) => {
@@ -53,9 +53,12 @@ function StockEntryView() {
                         }}
                     />
                 </div>
-                <StockEntryProductDetails
-                    stockEntryProducts={stockEntryProducts ?? []}
-                />
+                <div className="col-span-2">
+                    <StockEntryProductDetails
+                        movement={movement}
+                        stockEntryProducts={stockEntryProducts ?? []}
+                    />
+                </div>
             </div>
 
             <StockEntryAddProductsDialog
@@ -71,9 +74,11 @@ function StockEntryView() {
 export default StockEntryView;
 
 interface StockEntryProductDetailsProps {
+    movement: IMovementDto;
     stockEntryProducts: IStockEntryProductView[];
 }
 function StockEntryProductDetails({
+    movement,
     stockEntryProducts,
 }: StockEntryProductDetailsProps) {
     const [errorMsg, setErrorMsg] = useState("");
@@ -98,6 +103,19 @@ function StockEntryProductDetails({
         }
     }
 
+    function productSubtotal(product: IStockEntryProductView) {
+        let subtotal = 0;
+        for (const unit of product.units) {
+            if (movement.type == "IN") {
+                subtotal += product.cost * unit.quantity;
+            } else {
+                subtotal += product.price * unit.quantity;
+            }
+        }
+
+        return subtotal;
+    }
+
     return (
         <Accordion type="single" collapsible>
             {stockEntryProducts.map((stockEntryProd) => (
@@ -115,7 +133,8 @@ function StockEntryProductDetails({
                                     <td className="p-2">Color</td>
                                     <td className="p-2">Talle</td>
                                     <td className="p-2">Cantidad</td>
-                                    <td className="p-2"></td>
+                                    <td className="p-2">Precio</td>
+                                    <td></td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -132,6 +151,9 @@ function StockEntryProductDetails({
                                         </td>
                                         <td className="p-2">{unit.quantity}</td>
                                         <td className="p-2">
+                                            {stockEntryProd.price}
+                                        </td>
+                                        <td className="p-2 flex">
                                             <AppDialog>
                                                 <AppDialogTrigger asChild>
                                                     <Button
@@ -215,9 +237,22 @@ function StockEntryProductDetails({
                                                     </form>
                                                 </AppDialogContent>
                                             </AppDialog>
+                                            <Button variant="link">
+                                                Eliminar
+                                            </Button>
                                         </td>
                                     </tr>
                                 ))}
+                                <tr>
+                                    <td className="p-2">
+                                        Subtotal por producto
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td className="p-2">
+                                        {productSubtotal(stockEntryProd)}
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </AccordionContent>

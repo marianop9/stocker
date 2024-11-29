@@ -5,9 +5,14 @@ import { IMovementDto } from "@/models/movements";
 function MovementOverview({ movement }: { movement: IMovementDto }) {
     return (
         <>
-            <AppFormEntry label="Tipo" name="type">
-                <Input type="type" disabled value={movement.type} />
-            </AppFormEntry>
+            <div className="flex justify-between">
+                <AppFormEntry label="Tipo" name="type">
+                    <Input type="type" disabled value={movement.type} />
+                </AppFormEntry>
+                <AppFormEntry label="Estado" name="state">
+                    <Input type="state" disabled value={movement.state} />
+                </AppFormEntry>
+            </div>
             <AppFormEntry label="Fecha" name="date">
                 <Input
                     type="date"

@@ -3,12 +3,14 @@ import { PopoverAnchor } from "@radix-ui/react-popover";
 import useDebounce from "@/lib/hooks/useDebounce";
 import { PropsWithChildren, useState } from "react";
 import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 interface Props extends PropsWithChildren {
+    label?: string;
     onSearchTermChange(searchTerm: string): void;
 }
 
-function AppSearchInput({ onSearchTermChange, children }: Props) {
+function AppSearchInput({ label, onSearchTermChange, children }: Props) {
     const [open, setOpen] = useState(false);
 
     const [inputValue, setInputValue] = useState("");
@@ -24,6 +26,7 @@ function AppSearchInput({ onSearchTermChange, children }: Props) {
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverAnchor>
+                <Label>{label}</Label>
                 <Input
                     type="text"
                     value={inputValue}
