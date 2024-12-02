@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo/v5"
 	"github.com/marianop9/stocker/app/stocker"
-	"github.com/pocketbase/pocketbase/daos"
-	"github.com/pocketbase/pocketbase/forms"
-	"github.com/pocketbase/pocketbase/models"
+	"github.com/marianop9/stocker/app/stocker/utils"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 const module = stocker.ModuleProductUnits
@@ -22,28 +20,25 @@ func RegisterProductUnitsHandlers(app *stocker.StockerApp) {
 		Quantity  int    `json:"quantity"`
 	}
 
-	app.AddCustomHandler(module, "createBatch", http.MethodPost, func(c echo.Context) error {
+	app.AddCustomHandler(module, "createBatch", http.MethodPost, func(e *core.RequestEvent) error {
 		var dtos []ProductUnitDto
 
-		c.Bind(&dtos)
+		e.BindBody(&dtos)
 
 		for _, dto := range dtos {
 			fmt.Printf("%#v", dto)
 		}
 
-		collection, err := app.PbApp.Dao().FindCollectionByNameOrId("product_units")
+		collection, err := app.PbApp.FindCollectionByNameOrId("product_units")
 		if err != nil {
 			return err
 		}
 
-		err = app.PbApp.Dao().RunInTransaction(func(txDao *daos.Dao) error {
+		err = app.PbApp.RunInTransaction(func(txApp core.App) error {
 			for _, dto := range dtos {
-				record := models.NewRecord(collection)
+				record := core.NewRecord(collection)
 
-				form := forms.NewRecordUpsert(app.PbApp, record)
-				form.SetDao(txDao)
-
-				err := form.LoadData(map[string]any{
+				record.Load(map[string]any{
 					"productId": dto.ProductId,
 					"colorId":   dto.ColorId,
 					"sizeId":    dto.SizeId,
@@ -51,11 +46,7 @@ func RegisterProductUnitsHandlers(app *stocker.StockerApp) {
 					"quantity":  dto.Quantity,
 				})
 
-				if err != nil {
-					return err
-				}
-
-				if err := form.Submit(); err != nil {
+				if err := txApp.Save(record); err != nil {
 					return err
 				}
 			}
@@ -64,10 +55,10 @@ func RegisterProductUnitsHandlers(app *stocker.StockerApp) {
 		})
 
 		if err != nil {
-			return err
+			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(err))
 		}
 
-		return c.JSON(200, map[string]int{
+		return e.JSON(200, map[string]int{
 			"len": len(dtos),
 		})
 	})

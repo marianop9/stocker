@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,9 +18,7 @@ func TestAddCustomHandler(t *testing.T) {
 
 	app := NewStockerApp(&pocketbase.PocketBase{})
 
-	app.AddCustomHandler(module, action, method, func(c echo.Context) error {
-		return nil
-	})
+	app.AddCustomHandler(module, action, method, func(e *core.RequestEvent) error { return nil })
 
 	assert.Len(t, app.handlers, 1)
 
