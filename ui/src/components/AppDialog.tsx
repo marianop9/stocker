@@ -1,5 +1,6 @@
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogDescription,
     DialogFooter,
@@ -16,6 +17,7 @@ export const AppDialog = (props: DialogProps) => {
 
 export const AppDialogTrigger = DialogTrigger;
 export const AppDialogFooter = DialogFooter;
+export const AppDialogClose = DialogClose;
 
 interface Props extends PropsWithChildren {
     title: string;
@@ -42,6 +44,7 @@ export function AppDialogContent({ title, description, children }: Props) {
  *  <AppDialogTrigger></AppDialogTrigger>
  *  <AppDialogContent>
  *    <AppDialogFooter> (optional)
+ *      <AppDialogClose></AppDialogClose> (optional)
  *    </AppDialogFooter>
  *  </AppDialogContent>
  * </AppDialog>
