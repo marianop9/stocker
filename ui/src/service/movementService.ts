@@ -6,11 +6,13 @@ import {
 import { executeService, ServiceResponse } from "./serviceResponse";
 import { pbClient } from "./pocketbase";
 import { ListResult } from "pocketbase";
+import { METHODS } from "http";
 
 interface IMovementService {
     list(): Promise<ListResult<IMovementDto>>;
     get(id: string): Promise<IMovementDto>;
     create(entity: IMovementDto): Promise<ServiceResponse<IMovementDto>>;
+    close(id: string): Promise<ServiceResponse<void>>;
 }
 
 export const movementService: IMovementService = {
@@ -23,6 +25,15 @@ export const movementService: IMovementService = {
     create(entity: IMovementDto) {
         const promise = pbClient.movements.create(entity);
 
+        return executeService(promise);
+    },
+    close(id) {
+        const promise = pbClient.callCustomEndpoint(
+            "movements",
+            `${id}/close`,
+            {},
+            "POST",
+        );
         return executeService(promise);
     },
 };

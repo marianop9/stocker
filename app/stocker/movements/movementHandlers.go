@@ -65,7 +65,7 @@ var handleCreateStockEntry stocker.StockerHandlerBuilder = func(app *stocker.Sto
 	}
 }
 
-var handleApplyMovement stocker.StockerHandlerBuilder = func(app *stocker.StockerApp) stocker.PbHandler {
+var handleCloseMovement stocker.StockerHandlerBuilder = func(app *stocker.StockerApp) stocker.PbHandler {
 	return func(e *core.RequestEvent) error {
 		movementId := e.Request.PathValue("movementId")
 		if movementId == "" {
@@ -86,8 +86,10 @@ var handleApplyMovement stocker.StockerHandlerBuilder = func(app *stocker.Stocke
 			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(err))
 		}
 
-		// record.Get()
-
+		e.JSON(http.StatusOK, map[string]string {
+			"status": "success",
+		})
+		
 		return nil
 	}
 
@@ -118,7 +120,6 @@ func applyMovement(app *stocker.StockerApp, record *core.Record) error {
 
 	err = app.PbApp.RunInTransaction(func(txApp core.App) error {
 		// each child holds the quantity to add/subtract for a single product_unit
-
 		for _, child := range childRecords {
 			productUnit, err := txApp.FindRecordById(stocker.CollectionProductUnits, child.GetString("productUnitId"))
 			if err != nil {
@@ -135,15 +136,15 @@ func applyMovement(app *stocker.StockerApp, record *core.Record) error {
 				return err
 			}
 		}
+	
+		// close movement
+		record.Set("state", MovementStateClosed)
+		if err = txApp.Save(record); err != nil {
+			return err
+		}
 
 		return nil
 	})
-	if err != nil {
-		return err
-	}
 
-	// close movement
-	record.Set("state", MovementStateClosed)
-
-	return nil
+	return err
 }

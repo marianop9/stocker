@@ -7,6 +7,7 @@ import {
     MovementFormServerError,
 } from "./movementFormActions";
 import AppSelect from "@/components/AppSelect";
+import { AppDialogFooter } from "@/components/AppDialog";
 
 const movementTypeOpts = [
     {
@@ -47,7 +48,12 @@ function MovementForm() {
                 />
             </AppFormEntry>
 
-            <Button type="submit">Crear</Button>
+            <AppDialogFooter>
+                <Button type="submit">Crear</Button>
+            </AppDialogFooter>
+            {/* <div className="flex justify-end">
+                <Button type="submit">Crear</Button>
+            </div> */}
         </Form>
     );
 }

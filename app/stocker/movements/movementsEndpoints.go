@@ -16,5 +16,5 @@ type StockEntryDto struct {
 func RegisterMovementsHandlers(app *stocker.StockerApp) {
 	app.AddCustomHandler(stocker.ModuleMovements, "createStockEntry", http.MethodPost, handleCreateStockEntry(app))
 
-	app.AddCustomHandler(stocker.ModuleMovements, "{movementId}/apply", http.MethodPost, handleApplyMovement(app))
+	app.AddCustomHandler(stocker.ModuleMovements, "{movementId}/close", http.MethodPost, handleCloseMovement(app))
 }

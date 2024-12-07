@@ -53,7 +53,7 @@ export const productUnitService: IProductUnitService = {
         });
     },
     async createBatch(dtos) {
-        const promise = await pbClient.callCustomEndpoint(
+        const promise = pbClient.callCustomEndpoint(
             "productUnits",
             "createBatch",
             dtos,

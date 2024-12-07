@@ -4,8 +4,8 @@ import { IMovementDto } from "@/models/movements";
 import { AppDataTable } from "@/components/AppDataTable";
 import { useQuery } from "@tanstack/react-query";
 import { movementService } from "@/service/movementService";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import AppDialogWrapper from "@/components/AppDialogWrapper";
+import AppLink from "@/components/AppLink";
 
 const colums: ColumnDef<IMovementDto>[] = [
     {
@@ -13,20 +13,25 @@ const colums: ColumnDef<IMovementDto>[] = [
         accessorKey: "id",
     },
     {
+        header: "Fecha",
+        accessorKey: "date",
+    },
+    {
         header: "Tipo",
         accessorKey: "type",
     },
     {
-        header: "Fecha",
-        accessorKey: "date",
+        header: "Estado",
+        accessorKey: "state",
     },
     {
         id: "actions",
         cell({ row }) {
             return (
-                <Link to={"/movements/" + row.getValue("id")}>
-                    <Button>Ver</Button>
-                </Link>
+                <AppLink
+                    route={"/movements/" + row.getValue("id")}
+                    label="Ver"
+                />
             );
         },
     },
@@ -40,8 +45,13 @@ function MovementsView() {
 
     return (
         <>
-            <div className="w-1/2 mx-auto">
-                <MovementForm />
+            <div className="flex justify-end mb-4">
+                <AppDialogWrapper
+                    dialogTitle="Crear movimiento"
+                    triggerLabel="Crear movimiento"
+                >
+                    <MovementForm />
+                </AppDialogWrapper>
             </div>
             <AppDataTable data={data?.items ?? []} columns={colums} />
         </>

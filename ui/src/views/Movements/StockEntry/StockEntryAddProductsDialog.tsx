@@ -23,6 +23,7 @@ interface Props {
     onOpenChange(open: boolean): void;
     movement: IMovementDto;
     product: IProductView | null;
+    onProductAdded: () => void;
 }
 
 const columns: ColumnDef<IProductUnitView>[] = [
@@ -61,6 +62,7 @@ function StockEntryAddProductsDialog({
     onOpenChange,
     movement,
     product,
+    onProductAdded,
 }: Props) {
     if (!product) return <></>;
 
@@ -103,6 +105,8 @@ function StockEntryAddProductsDialog({
 
         if (!response.success) {
             console.error(response.error);
+        } else {
+            onProductAdded();
         }
     }
 

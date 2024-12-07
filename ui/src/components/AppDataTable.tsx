@@ -16,12 +16,10 @@ import {
     Table,
     TableBody,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Button } from "./ui/button";
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -34,6 +32,7 @@ interface DataTableProps<TData, TValue> {
         index: number,
         parent?: Row<TData>,
     ) => string;
+    showIdColumn?: boolean;
 }
 
 export function AppDataTable<TData, TValue>({
@@ -43,6 +42,7 @@ export function AppDataTable<TData, TValue>({
     onRowSelectionChange,
     rowSelection = {},
     getRowId,
+    showIdColumn = false,
 }: DataTableProps<TData, TValue>) {
     const hasSelection = onRowSelectionChange !== undefined;
 
@@ -56,6 +56,11 @@ export function AppDataTable<TData, TValue>({
         state: {
             columnFilters: filters,
             rowSelection,
+        },
+        initialState: {
+            columnVisibility: {
+                id: showIdColumn,
+            },
         },
     });
 
