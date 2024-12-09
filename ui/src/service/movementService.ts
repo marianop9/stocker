@@ -6,7 +6,6 @@ import {
 import { executeService, ServiceResponse } from "./serviceResponse";
 import { pbClient } from "./pocketbase";
 import { ListResult } from "pocketbase";
-import { METHODS } from "http";
 
 interface IMovementService {
     list(): Promise<ListResult<IMovementDto>>;
@@ -17,7 +16,7 @@ interface IMovementService {
 
 export const movementService: IMovementService = {
     list() {
-        return pbClient.movements.getList();
+        return pbClient.movements.getList(1, 50, { sort: "-date" });
     },
     get(id) {
         return pbClient.movements.getOne(id);

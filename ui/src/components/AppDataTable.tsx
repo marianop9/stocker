@@ -6,9 +6,11 @@ import {
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
+    getSortedRowModel,
     OnChangeFn,
     Row,
     RowSelectionState,
+    SortingState,
     useReactTable,
 } from "@tanstack/react-table";
 
@@ -20,6 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { useState } from "react";
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -46,6 +49,8 @@ export function AppDataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
     const hasSelection = onRowSelectionChange !== undefined;
 
+    const [sorting, setSorting] = useState<SortingState>([]);
+
     const table = useReactTable({
         getRowId,
         data,
@@ -53,9 +58,12 @@ export function AppDataTable<TData, TValue>({
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onRowSelectionChange,
+        onSortingChange: setSorting,
+        getSortedRowModel: getSortedRowModel(),
         state: {
             columnFilters: filters,
             rowSelection,
+            sorting,
         },
         initialState: {
             columnVisibility: {
