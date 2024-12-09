@@ -13,8 +13,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { IProductUnitView } from "@/models/products";
 import { AppDataTable } from "@/components/AppDataTable";
 import ProductUnitForm from "./ProductUnitForm";
-import { useQuery } from "@tanstack/react-query";
-import { productUnitService } from "@/service/productService";
+import { useProductUnitsListService } from "@/lib/hooks/useProductUnitsService";
 
 const currencyFmt = Intl.NumberFormat("es-AR", {
     style: "currency",
@@ -27,13 +26,9 @@ function ProductUnitView() {
 
     const product = useAppRouterLoaderData(productUnitLoader);
     const routeParams = useParams();
-    const productId = routeParams["id"];
+    const productId = routeParams["id"] ?? "";
 
-    const { data: details, refetch } = useQuery({
-        queryKey: ["product-details", productId],
-        enabled: productId !== undefined,
-        queryFn: () => productUnitService.list(productId!),
-    });
+    const { data: details, invalidate } = useProductUnitsListService(productId);
 
     const { revalidate } = useRevalidator();
 
@@ -44,7 +39,7 @@ function ProductUnitView() {
     };
 
     function handleUnitsCreated() {
-        refetch();
+        invalidate();
         setUnitsDialogOpen(false);
     }
 
@@ -70,7 +65,9 @@ function ProductUnitView() {
                         onOpenChange={setProductDialogOpen}
                     >
                         <AppDialogTrigger asChild>
-                            <Button className="mt-4" variant="secondary">Modificar</Button>
+                            <Button className="mt-4" variant="secondary">
+                                Modificar
+                            </Button>
                         </AppDialogTrigger>
                         <AppDialogContent title="Modificar producto">
                             <ProductForm

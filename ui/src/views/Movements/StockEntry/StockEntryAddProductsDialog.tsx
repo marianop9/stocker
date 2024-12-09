@@ -10,11 +10,10 @@ import AppFormEntry, {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { useProductUnitsListService } from "@/lib/hooks/useProductUnitsService";
 import { IMovementDto, IStockEntryDto } from "@/models/movements";
 import { IProductUnitView, IProductView } from "@/models/products";
 import { stockEntryService } from "@/service/movementService";
-import { productUnitService } from "@/service/productService";
-import { useQuery } from "@tanstack/react-query";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
 import { useState } from "react";
 
@@ -66,10 +65,7 @@ function StockEntryAddProductsDialog({
 }: Props) {
     if (!product) return <></>;
 
-    const { data: productUnits = [] } = useQuery({
-        queryKey: ["product-units", product.id],
-        queryFn: () => productUnitService.list(product.id),
-    });
+    const { data: productUnits = [] } = useProductUnitsListService(product.id);
 
     const [quantity, setQuantity] = useState("");
     const [selectedRows, setSelectedRows] = useState<RowSelectionState>({});
