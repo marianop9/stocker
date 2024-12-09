@@ -49,6 +49,15 @@ const columns: ColumnDef<IProductUnitView>[] = [
     {
         accessorKey: "colorName",
         header: "Color",
+        cell: ({ row }) => (
+            <div className="flex items-center gap-2">
+                <span>{row.original.colorName}</span>
+                <div
+                    className="h-4 w-4 rounded-sm"
+                    style={{ backgroundColor: row.original.colorHexcode }}
+                ></div>
+            </div>
+        ),
     },
     {
         accessorKey: "sizeAlias",

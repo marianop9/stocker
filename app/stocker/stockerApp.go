@@ -27,7 +27,7 @@ func NewStockerApp(pocketbaseApp *pocketbase.PocketBase) *StockerApp {
 	}
 }
 
-func (sa *StockerApp) AddCustomHandler(module, action, httpMethod string, handler PbHandler) {
+func (sa *StockerApp) AddCustomHandler(module, action, httpMethod string, handler PbHandlerFunc) {
 	sa.handlers = append(sa.handlers, Handler{
 		module:     module,
 		action:     action,
@@ -44,7 +44,7 @@ func (sa *StockerApp) RegisterCustomHandlers() {
 
 		for _, h := range sa.handlers {
 			path := h.getEndpointPath()
-			log.Printf("Registering custom endpoint: %s...\n", path)
+			log.Printf("Registering custom endpoint: (%s) %s...\n", h.httpMethod, path)
 
 			switch h.httpMethod {
 			case http.MethodGet:

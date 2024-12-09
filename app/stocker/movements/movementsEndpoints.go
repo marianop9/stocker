@@ -17,4 +17,6 @@ func RegisterMovementsHandlers(app *stocker.StockerApp) {
 	app.AddCustomHandler(stocker.ModuleMovements, "createStockEntry", http.MethodPost, handleCreateStockEntry(app))
 
 	app.AddCustomHandler(stocker.ModuleMovements, "{movementId}/close", http.MethodPost, handleCloseMovement(app))
+
+	app.AddCustomHandler(stocker.ModuleMovements, "{movementId}", http.MethodDelete, handleDeleteMovement(app))
 }

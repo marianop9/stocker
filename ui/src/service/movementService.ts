@@ -11,12 +11,16 @@ interface IMovementService {
     list(): Promise<ListResult<IMovementDto>>;
     get(id: string): Promise<IMovementDto>;
     create(entity: IMovementDto): Promise<ServiceResponse<IMovementDto>>;
-    close(id: string): Promise<ServiceResponse<void>>;
+    close(id: string): Promise<ServiceResponse<any>>;
+    delete(id: string): Promise<ServiceResponse<any>>;
 }
 
 export const movementService: IMovementService = {
     list() {
-        return pbClient.movements.getList(1, 50, { sort: "-date" });
+        return pbClient.movements.getList(1, 50, {
+            sort: "-date",
+            filter: "deleted = ''",
+        });
     },
     get(id) {
         return pbClient.movements.getOne(id);
@@ -33,6 +37,16 @@ export const movementService: IMovementService = {
             {},
             "POST",
         );
+        return executeService(promise);
+    },
+    delete(id) {
+        const promise = pbClient.callCustomEndpoint(
+            "movements",
+            id,
+            {},
+            "DELETE",
+        );
+
         return executeService(promise);
     },
 };

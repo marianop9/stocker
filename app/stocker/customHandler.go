@@ -8,13 +8,13 @@ type Handler struct {
 	module     string
 	action     string
 	httpMethod string
-	handler    PbHandler
+	handler    PbHandlerFunc
 }
 
 func (h Handler) getEndpointPath() string {
 	return h.module + "/" + h.action
 }
 
-type PbHandler func(e *core.RequestEvent) error
+type PbHandlerFunc func(e *core.RequestEvent) error
 
-type StockerHandlerBuilder func(app *StockerApp) PbHandler
+type StockerHandlerBuilder func(app *StockerApp) PbHandlerFunc
