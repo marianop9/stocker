@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { AppDialogClose, AppDialogFooter } from "@/components/AppDialog";
 import { useState } from "react";
 import { IProductView } from "@/models/products";
-import StockEntryAddProductsDialog from "./StockEntryAddProductsDialog";
+import StockEntryAddProductsForm from "./StockEntryAddProductsForm";
 import { movementService } from "@/service/movementService";
 import MovementOverview from "../MovementOverview";
 import StockEntryProductDetails from "./StockEntryProductDetails";
 import { useStockEntryProductsQuery } from "./useStockEntryProductsQuery";
 import AppDialogWrapper from "@/components/AppDialogWrapper";
 import AppLink from "@/components/AppLink";
+import AppControlledDialogWrapper from "@/components/AppControlledDialogWrapper";
 
 function StockEntryView() {
     const movement = useAppRouterLoaderData(stockEntryViewLoader);
@@ -102,13 +103,17 @@ function StockEntryView() {
                     </AppDialogFooter>
                 </AppDialogWrapper>
             </div>
-            <StockEntryAddProductsDialog
+            <AppControlledDialogWrapper
+                dialogTitle="Agregar productos"
                 open={isAddProductsDialogOpen}
                 onOpenChange={setIsAddProductsDialogOpen}
-                movement={movement}
-                product={selecetedProduct}
-                onProductAdded={handleProductAdded}
-            />
+            >
+                <StockEntryAddProductsForm
+                    movement={movement}
+                    product={selecetedProduct}
+                    onProductAdded={handleProductAdded}
+                />
+            </AppControlledDialogWrapper>
         </>
     );
 }

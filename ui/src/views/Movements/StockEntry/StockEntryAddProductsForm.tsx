@@ -1,9 +1,5 @@
 import { AppDataTable } from "@/components/AppDataTable";
-import {
-    AppDialog,
-    AppDialogContent,
-    AppDialogFooter,
-} from "@/components/AppDialog";
+import { AppDialogFooter } from "@/components/AppDialog";
 import AppFormEntry, {
     AppFormValidationMessage,
 } from "@/components/AppFormEntry";
@@ -16,14 +12,6 @@ import { IProductUnitView, IProductView } from "@/models/products";
 import { stockEntryService } from "@/service/movementService";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
 import { useState } from "react";
-
-interface Props {
-    open: boolean;
-    onOpenChange(open: boolean): void;
-    movement: IMovementDto;
-    product: IProductView | null;
-    onProductAdded: () => void;
-}
 
 const columns: ColumnDef<IProductUnitView>[] = [
     {
@@ -53,7 +41,7 @@ const columns: ColumnDef<IProductUnitView>[] = [
             <div className="flex items-center gap-2">
                 <span>{row.original.colorName}</span>
                 <div
-                    className="h-4 w-4 rounded-sm"
+                    className="h-4 w-4 rounded-sm border-primary border"
                     style={{ backgroundColor: row.original.colorHexcode }}
                 ></div>
             </div>
@@ -65,9 +53,13 @@ const columns: ColumnDef<IProductUnitView>[] = [
     },
 ];
 
-function StockEntryAddProductsDialog({
-    open,
-    onOpenChange,
+interface Props {
+    movement: IMovementDto;
+    product: IProductView | null;
+    onProductAdded: () => void;
+}
+
+function StockEntryAddProductsForm({
     movement,
     product,
     onProductAdded,
@@ -116,54 +108,52 @@ function StockEntryAddProductsDialog({
     }
 
     return (
-        <AppDialog open={open} onOpenChange={onOpenChange}>
-            <AppDialogContent title="Agregar productos">
-                <div className="mb-4">
-                    <span>
-                        {product.categoryName} / {product.providerName}
-                    </span>
-                    <div>{product.name}</div>
-                </div>
-                <div className="flex justify-between">
-                    <AppFormEntry
-                        label="Precio"
-                        name="price"
-                        className="w-1/3"
+        <>
+            <div className="mb-4">
+                <span>
+                    {product.categoryName} / {product.providerName}
+                </span>
+                <div>{product.name}</div>
+            </div>
+            <div className="flex justify-between">
+                <AppFormEntry
+                    label="Precio"
+                    name="price"
+                    className="w-1/3"
+                    disabled
+                >
+                    <Input
+                        type="number"
+                        defaultValue={product.price}
                         disabled
-                    >
-                        <Input
-                            type="number"
-                            defaultValue={product.price}
-                            disabled
-                        />
-                    </AppFormEntry>
-                    <AppFormEntry
-                        label="Cantidad"
-                        name="qty"
-                        className="w-1/3"
-                        errors={quantityValidation}
-                    >
-                        <Input
-                            type="number"
-                            value={quantity}
-                            onChange={(e) => setQuantity(e.target.value)}
-                        />
-                    </AppFormEntry>
-                </div>
-                <AppDataTable
-                    columns={columns}
-                    data={productUnits}
-                    getRowId={(row) => row.id}
-                    rowSelection={selectedRows}
-                    onRowSelectionChange={setSelectedRows}
-                />
-                <AppFormValidationMessage message={selectedRowsValidation} />
-                <AppDialogFooter className="flex justify-end">
-                    <Button onClick={handleSave}>Agregar</Button>
-                </AppDialogFooter>
-            </AppDialogContent>
-        </AppDialog>
+                    />
+                </AppFormEntry>
+                <AppFormEntry
+                    label="Cantidad"
+                    name="qty"
+                    className="w-1/3"
+                    errors={quantityValidation}
+                >
+                    <Input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                    />
+                </AppFormEntry>
+            </div>
+            <AppDataTable
+                columns={columns}
+                data={productUnits}
+                getRowId={(row) => row.id}
+                rowSelection={selectedRows}
+                onRowSelectionChange={setSelectedRows}
+            />
+            <AppFormValidationMessage message={selectedRowsValidation} />
+            <AppDialogFooter className="flex justify-end">
+                <Button onClick={handleSave}>Agregar</Button>
+            </AppDialogFooter>
+        </>
     );
 }
 
-export default StockEntryAddProductsDialog;
+export default StockEntryAddProductsForm;

@@ -55,7 +55,11 @@ function StockEntryProductDetails({
                         <AccordionTrigger className="px-2 rounded-sm data-[state=open]:text-primary">
                             <span className="flex gap-6">
                                 {stockEntryProd.name}
-                                <Badge variant="secondary">{`${stockEntryProd.units.length} unidades`}</Badge>
+                                <Badge variant="secondary">
+                                    {stockEntryProd.units.length > 1
+                                        ? `${stockEntryProd.units.length} unidades`
+                                        : "1 unidad"}
+                                </Badge>
                             </span>
                         </AccordionTrigger>
                         <AccordionContent>
