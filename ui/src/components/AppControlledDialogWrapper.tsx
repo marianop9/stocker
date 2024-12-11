@@ -1,13 +1,12 @@
 import { PropsWithChildren } from "react";
 import { AppDialog, AppDialogContent, AppDialogTrigger } from "./AppDialog";
 import { Button } from "./ui/button";
+import ControlledComponent from "@/lib/contracts/ControlledComponent";
 
-interface AppControlledDialogWrapperProps extends PropsWithChildren {
+interface AppControlledDialogWrapperProps extends PropsWithChildren, ControlledComponent {
     dialogTitle: string;
     triggerLabel?: string;
     triggerDisabled?: boolean;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
 }
 
 function AppControlledDialogWrapper({

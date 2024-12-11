@@ -3,8 +3,6 @@ import { stockEntryViewLoader } from "./stockEntryViewLoader";
 
 import ProductSearch from "../ProductSearch";
 
-import { Button } from "@/components/ui/button";
-import { AppDialogClose, AppDialogFooter } from "@/components/AppDialog";
 import { useState } from "react";
 import { IProductView } from "@/models/products";
 import StockEntryAddProductsForm from "./StockEntryAddProductsForm";
@@ -12,21 +10,18 @@ import { movementService } from "@/service/movementService";
 import MovementOverview from "../MovementOverview";
 import StockEntryProductDetails from "./StockEntryProductDetails";
 import { useStockEntryProductsQuery } from "./useStockEntryProductsQuery";
-import AppDialogWrapper from "@/components/AppDialogWrapper";
-import AppLink from "@/components/AppLink";
 import AppControlledDialogWrapper from "@/components/AppControlledDialogWrapper";
+import AppConfirm from "@/components/AppConfirm";
+import AppBackNavButton from "@/components/AppBackNavButton";
 
 function StockEntryView() {
     const movement = useAppRouterLoaderData(stockEntryViewLoader);
 
-    const [isAddProductsDialogOpen, setIsAddProductsDialogOpen] =
-        useState(false);
+    const [isAddProductsDialogOpen, setIsAddProductsDialogOpen] = useState(false);
 
-    const [selecetedProduct, setSelectedProduct] =
-        useState<IProductView | null>(null);
+    const [selecetedProduct, setSelectedProduct] = useState<IProductView | null>(null);
 
-    const { data: stockEntryProducts, invalidateQuery } =
-        useStockEntryProductsQuery(movement.id);
+    const { data: stockEntryProducts, invalidateQuery } = useStockEntryProductsQuery(movement.id);
 
     function handleProductAdded() {
         invalidateQuery();
@@ -46,7 +41,7 @@ function StockEntryView() {
     return (
         <>
             <div className="mb-4">
-                <AppLink label="Volver" route="/movements" />
+                <AppBackNavButton />
             </div>
             <div className="w-2/3">
                 <MovementOverview movement={movement} />
@@ -69,8 +64,9 @@ function StockEntryView() {
                 </div>
             </div>
             <div className="mt-4 flex justify-end">
-                <AppDialogWrapper
-                    dialogTitle="Cerrar movimiento"
+                <AppConfirm
+                    onConfirm={closeMovement}
+                    title="Cerrar movimiento"
                     triggerLabel="Cerrar movimiento"
                     triggerDisabled={movement.state !== "OPEN"}
                 >
@@ -78,30 +74,20 @@ function StockEntryView() {
                         Productos:{" "}
                         {stockEntryProducts
                             .flatMap((p) => p.units)
-                            .reduce(
-                                (totalQty, unit) => totalQty + unit.quantity,
-                                0,
-                            )}
+                            .reduce((totalQty, unit) => totalQty + unit.quantity, 0)}
                     </p>
                     <p>
                         Total:{" "}
                         {stockEntryProducts
                             .map((p) =>
                                 p.units.reduce(
-                                    (prodTotal, unit) =>
-                                        prodTotal + unit.quantity * p.cost,
+                                    (prodTotal, unit) => prodTotal + unit.quantity * p.cost,
                                     0,
                                 ),
                             )
                             .reduce((total, prodTotal) => total + prodTotal, 0)}
                     </p>
-                    <AppDialogFooter>
-                        <AppDialogClose className="mr-2">
-                            Cancelar
-                        </AppDialogClose>
-                        <Button onClick={closeMovement}>Confirmar</Button>
-                    </AppDialogFooter>
-                </AppDialogWrapper>
+                </AppConfirm>
             </div>
             <AppControlledDialogWrapper
                 dialogTitle="Agregar productos"
@@ -111,6 +97,9 @@ function StockEntryView() {
                 <StockEntryAddProductsForm
                     movement={movement}
                     product={selecetedProduct}
+                    stockEntryProduct={
+                        stockEntryProducts.find((x) => x.productId === selecetedProduct?.id) ?? null
+                    }
                     onProductAdded={handleProductAdded}
                 />
             </AppControlledDialogWrapper>

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useFetcher } from "react-router-dom";
 import useAppRouterLoaderData from "@/lib/hooks/useAppRouterLoaderData";
 import { movementsLoader } from "./movementsLoader";
+import { formatDate, getMovementState, getMovementType } from "@/lib/formatters";
 
 function useMovementColumns(
     filters: ColumnFiltersState,
@@ -24,6 +25,7 @@ function useMovementColumns(
         {
             header: "Fecha",
             accessorKey: "date",
+            cell: ({ getValue }) => <>{formatDate(getValue() as string)}</>,
         },
         {
             header: () => (
@@ -39,6 +41,7 @@ function useMovementColumns(
                 />
             ),
             accessorKey: "type",
+            cell: ({ row }) => <>{getMovementType(row.original.type)}</>,
         },
         {
             accessorKey: "state",
@@ -54,16 +57,14 @@ function useMovementColumns(
                     ]}
                 />
             ),
+            cell: ({ row }) => <>{getMovementState(row.original.state)}</>,
         },
         {
             id: "actions",
             cell({ row }) {
                 return (
                     <div className="flex gap-2">
-                        <AppLink
-                            route={"/movements/" + row.getValue("id")}
-                            label="Ver"
-                        />
+                        <AppLink route={"/movements/" + row.getValue("id")} label="Ver" />
                         {/* <Form method="DELETE">
                             <input
                                 type="text"
@@ -106,25 +107,16 @@ function MovementsView() {
     return (
         <>
             {hasError && (
-                <p className="my-4 p-2 rounded-md bg-red-400 text">
-                    {fetcher.data?.error}
-                </p>
+                <p className="my-4 p-2 rounded-md bg-red-400 text">{fetcher.data?.error}</p>
             )}
 
             <div className="flex justify-end mb-4">
-                <AppDialogWrapper
-                    dialogTitle="Crear movimiento"
-                    triggerLabel="Crear movimiento"
-                >
+                <AppDialogWrapper dialogTitle="Crear movimiento" triggerLabel="Crear movimiento">
                     <MovementForm />
                 </AppDialogWrapper>
             </div>
 
-            <AppDataTable
-                data={movements?.items ?? []}
-                columns={columns}
-                filters={filters}
-            />
+            <AppDataTable data={movements?.items ?? []} columns={columns} filters={filters} />
         </>
     );
 }

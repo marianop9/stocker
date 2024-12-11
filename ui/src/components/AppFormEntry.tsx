@@ -7,6 +7,7 @@ interface Props extends PropsWithChildren {
     helperText?: string;
     errors?: string | string[];
     disabled?: boolean;
+    readonly?: boolean;
     className?: string;
 }
 
@@ -17,17 +18,16 @@ function AppFormEntry({
     errors,
     children,
     disabled = false,
+    readonly = false,
     className,
 }: Props) {
     const errorMsg = Array.isArray(errors) ? errors.join(". ") : errors;
 
     return (
-        <div
-            className={`flex flex-col gap-2 mb-2 justify-between ${className ?? ""}`}
-        >
+        <div className={`flex flex-col gap-2 mb-2 justify-between ${className ?? ""}`}>
             <Label
                 htmlFor={name}
-                className={`${disabled ? "text-muted-foreground" : ""}`}
+                className={`${disabled || readonly ? "text-muted-foreground" : ""}`}
             >
                 {label}
             </Label>
