@@ -27,12 +27,12 @@ export function AppDialogContent({ title, description, children }: Props) {
     return (
         <DialogContent>
             <DialogHeader>
-                <div className="mb-4">
+                <div className="mb-2">
                     <DialogTitle className="mb-2">{title}</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
                 </div>
             </DialogHeader>
-            <div className="overflow-auto p-2" style={{ maxHeight: "80vh" }}>
+            <div className="overflow-auto" style={{ maxHeight: "80vh" }}>
                 {children}
             </div>
         </DialogContent>

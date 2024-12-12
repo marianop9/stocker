@@ -1,19 +1,6 @@
-import type {
-    ICategory,
-    IColor,
-    IProvider,
-    ISize,
-} from "@/models/administrations";
-import {
-    IMovementDto,
-    IStockEntryDto,
-    IStockEntryProductDto,
-} from "@/models/movements";
-import type {
-    IProductUnitView,
-    IProductDto,
-    IProductView,
-} from "@/models/products";
+import type { ICategory, IColor, IProvider, ISize } from "@/models/administrations";
+import { IMovementDto, IStockEntryDto, IStockEntryProductDto } from "@/models/movements";
+import type { IProductUnitView, IProductDto, IProductView } from "@/models/products";
 import IUser from "@/models/user";
 import Client, { RecordService } from "pocketbase";
 

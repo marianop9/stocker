@@ -10,9 +10,9 @@ import { movementService } from "@/service/movementService";
 import MovementOverview from "../MovementOverview";
 import StockEntryProductDetails from "./StockEntryProductDetails";
 import { useStockEntryProductsQuery } from "./useStockEntryProductsQuery";
-import AppControlledDialogWrapper from "@/components/AppControlledDialogWrapper";
 import AppConfirm from "@/components/AppConfirm";
 import AppBackNavButton from "@/components/AppBackNavButton";
+import { AppControlledDialogWrapper } from "@/components/AppDialogWrapper";
 
 function StockEntryView() {
     const movement = useAppRouterLoaderData(stockEntryViewLoader);
@@ -43,8 +43,39 @@ function StockEntryView() {
             <div className="mb-4">
                 <AppBackNavButton />
             </div>
-            <div className="w-2/3">
-                <MovementOverview movement={movement} />
+            <div className="flex">
+                <div className="w-2/3">
+                    <MovementOverview movement={movement} />
+                </div>
+                <div className="flex-grow">
+                    <div className="flex flex-col h-full gap-2 items-end">
+                        {/* <Button>asd</Button> */}
+                        <AppConfirm
+                            onConfirm={closeMovement}
+                            title="Cerrar movimiento"
+                            triggerLabel="Cerrar movimiento"
+                            triggerDisabled={movement.state !== "OPEN"}
+                        >
+                            <p>
+                                Productos:{" "}
+                                {stockEntryProducts
+                                    .flatMap((p) => p.units)
+                                    .reduce((totalQty, unit) => totalQty + unit.quantity, 0)}
+                            </p>
+                            <p>
+                                Total:{" "}
+                                {stockEntryProducts
+                                    .map((p) =>
+                                        p.units.reduce(
+                                            (prodTotal, unit) => prodTotal + unit.quantity * p.cost,
+                                            0,
+                                        ),
+                                    )
+                                    .reduce((total, prodTotal) => total + prodTotal, 0)}
+                            </p>
+                        </AppConfirm>
+                    </div>
+                </div>
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-8">
@@ -62,32 +93,6 @@ function StockEntryView() {
                         stockEntryProducts={stockEntryProducts ?? []}
                     />
                 </div>
-            </div>
-            <div className="mt-4 flex justify-end">
-                <AppConfirm
-                    onConfirm={closeMovement}
-                    title="Cerrar movimiento"
-                    triggerLabel="Cerrar movimiento"
-                    triggerDisabled={movement.state !== "OPEN"}
-                >
-                    <p>
-                        Productos:{" "}
-                        {stockEntryProducts
-                            .flatMap((p) => p.units)
-                            .reduce((totalQty, unit) => totalQty + unit.quantity, 0)}
-                    </p>
-                    <p>
-                        Total:{" "}
-                        {stockEntryProducts
-                            .map((p) =>
-                                p.units.reduce(
-                                    (prodTotal, unit) => prodTotal + unit.quantity * p.cost,
-                                    0,
-                                ),
-                            )
-                            .reduce((total, prodTotal) => total + prodTotal, 0)}
-                    </p>
-                </AppConfirm>
             </div>
             <AppControlledDialogWrapper
                 dialogTitle="Agregar productos"

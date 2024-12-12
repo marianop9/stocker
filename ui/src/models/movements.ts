@@ -29,6 +29,7 @@ export interface IStockEntryProductDto {
     cost: number;
     price: number;
     colorName: string;
+    colorHexcode: string;
     sizeAlias: string;
 }
 
@@ -44,6 +45,7 @@ export interface IStockEntryProductView {
         quantity: number;
         productUnitId: string;
         colorName: string;
+        colorHexcode: string;
         sizeAlias: string;
     }[];
 }

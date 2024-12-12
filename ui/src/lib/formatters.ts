@@ -10,3 +10,6 @@ export const getMovementState = (s: MovementState) => (s === "OPEN" ? "Abierto" 
 export const formatDate = (d: string) => {
     return dayjs.utc(d).format("DD/MM/YY");
 };
+
+export const formatCurrency = (p: number) =>
+    Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(p);

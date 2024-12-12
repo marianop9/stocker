@@ -2,10 +2,7 @@ import AppFormEntry from "@/components/AppFormEntry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, useActionData } from "react-router-dom";
-import {
-    MovementFormSchemaErrors,
-    MovementFormServerError,
-} from "./movementFormActions";
+import { MovementFormSchemaErrors, MovementFormServerError } from "./movementFormActions";
 import AppSelect from "@/components/AppSelect";
 import { AppDialogFooter } from "@/components/AppDialog";
 
@@ -51,9 +48,6 @@ function MovementForm() {
             <AppDialogFooter>
                 <Button type="submit">Crear</Button>
             </AppDialogFooter>
-            {/* <div className="flex justify-end">
-                <Button type="submit">Crear</Button>
-            </div> */}
         </Form>
     );
 }

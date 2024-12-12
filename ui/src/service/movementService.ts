@@ -1,8 +1,4 @@
-import {
-    IMovementDto,
-    IStockEntryDto,
-    IStockEntryProductView,
-} from "@/models/movements";
+import { IMovementDto, IStockEntryDto, IStockEntryProductView } from "@/models/movements";
 import { executeService, ServiceResponse } from "./serviceResponse";
 import { pbClient } from "./pocketbase";
 import { ListResult } from "pocketbase";
@@ -31,21 +27,11 @@ export const movementService: IMovementService = {
         return executeService(promise);
     },
     close(id) {
-        const promise = pbClient.callCustomEndpoint(
-            "movements",
-            `${id}/close`,
-            {},
-            "POST",
-        );
+        const promise = pbClient.callCustomEndpoint("movements", `${id}/close`, {}, "POST");
         return executeService(promise);
     },
     delete(id) {
-        const promise = pbClient.callCustomEndpoint(
-            "movements",
-            id,
-            {},
-            "DELETE",
-        );
+        const promise = pbClient.callCustomEndpoint("movements", id, {}, "DELETE");
 
         return executeService(promise);
     },
@@ -54,10 +40,8 @@ export const movementService: IMovementService = {
 interface IStockEntryService {
     listProducts(movementId: string): Promise<IStockEntryProductView[]>;
     create(entity: IStockEntryDto[]): Promise<ServiceResponse<unknown>>;
-    setQuantity(
-        stockEntryId: string,
-        qty: number,
-    ): Promise<ServiceResponse<IStockEntryDto>>;
+    setQuantity(stockEntryId: string, qty: number): Promise<ServiceResponse<IStockEntryDto>>;
+    delete(stockEntryId: string): Promise<ServiceResponse<unknown>>;
 }
 
 export const stockEntryService: IStockEntryService = {
@@ -77,6 +61,7 @@ export const stockEntryService: IStockEntryService = {
                     quantity: dto.quantity,
                     productUnitId: dto.productUnitId,
                     colorName: dto.colorName,
+                    colorHexcode: dto.colorHexcode,
                     sizeAlias: dto.sizeAlias,
                 });
             } else {
@@ -92,6 +77,7 @@ export const stockEntryService: IStockEntryService = {
                             quantity: dto.quantity,
                             productUnitId: dto.productUnitId,
                             colorName: dto.colorName,
+                            colorHexcode: dto.colorHexcode,
                             sizeAlias: dto.sizeAlias,
                         },
                     ],
@@ -104,11 +90,7 @@ export const stockEntryService: IStockEntryService = {
         return view;
     },
     create(entity: IStockEntryDto[]) {
-        const promise = pbClient.callCustomEndpoint(
-            "movements",
-            "createStockEntry",
-            entity,
-        );
+        const promise = pbClient.callCustomEndpoint("movements", "createStockEntry", entity);
 
         return executeService(promise);
     },
@@ -116,6 +98,11 @@ export const stockEntryService: IStockEntryService = {
         const promise = pbClient.stockEntries.update(stockEntryId, {
             quantity: quantity,
         });
+
+        return executeService(promise);
+    },
+    delete(stockEntryId) {
+        const promise = pbClient.stockEntries.delete(stockEntryId);
 
         return executeService(promise);
     },
