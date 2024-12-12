@@ -36,18 +36,12 @@ export type PocketBaseError = {
 function isClientResponseError(err: unknown): err is ClientResponseError {
     const error = err as ClientResponseError;
 
-    return (
-        error &&
-        typeof error.isAbort === "boolean" &&
-        typeof error.originalError === "object"
-    );
+    return error && typeof error.isAbort === "boolean" && typeof error.originalError === "object";
 }
 
 // if service fails check if it is a pocketbase error, otherwise throw.
 // if service executed succesfully, return the result
-export async function executeService<T>(
-    promise: Promise<T>,
-): Promise<ServiceResponse<T>> {
+export async function executeService<T>(promise: Promise<T>): Promise<ServiceResponse<T>> {
     return promise
         .then((result) => new ServiceSuccess(result))
         .catch((error) => {

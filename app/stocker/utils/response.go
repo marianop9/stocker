@@ -1,11 +1,29 @@
 package utils
 
-func NewErrorResponse(err error) map[string]string {
-	return NewErrorResponseString(err.Error())
+type CustomServiceResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
-func NewErrorResponseString(s string) map[string]string {
-	return map[string]string{
-		"message": s,
+func NewServiceResponse(ok bool, msg string) CustomServiceResponse {
+	return CustomServiceResponse{
+		Success: ok,
+		Message: msg,
 	}
+}
+
+func NewSuccessResponseMessage(msg string) CustomServiceResponse {
+	return NewServiceResponse(true, msg)
+}
+
+func NewSuccessResponse() CustomServiceResponse {
+	return NewSuccessResponseMessage("")
+}
+
+func NewErrorResponseMessage(msg string) CustomServiceResponse {
+	return NewServiceResponse(false, msg)
+}
+
+func NewErrorResponse(err error) CustomServiceResponse {
+	return NewErrorResponseMessage(err.Error())
 }

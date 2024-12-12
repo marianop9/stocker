@@ -3,7 +3,6 @@ package movements
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/marianop9/stocker/app/stocker"
 	"github.com/marianop9/stocker/app/stocker/utils"
@@ -71,7 +70,7 @@ var handleCloseMovement stocker.StockerHandlerBuilder = func(app *stocker.Stocke
 	return func(e *core.RequestEvent) error {
 		movementId := e.Request.PathValue("movementId")
 		if movementId == "" {
-			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseString("must provide a movement id"))
+			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseMessage("must provide a movement id"))
 		}
 
 		// collection, err := app.PbApp.Dao().FindCollectionByNameOrId(stocker.CollectionMovements)
@@ -81,20 +80,15 @@ var handleCloseMovement stocker.StockerHandlerBuilder = func(app *stocker.Stocke
 
 		record, err := app.PbApp.FindRecordById(stocker.CollectionMovements, movementId)
 		if err != nil {
-			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseString("no movements match the supplied id"))
+			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseMessage("no movements match the supplied id"))
 		}
 
 		if err = applyMovement(app, record); err != nil {
 			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(err))
 		}
 
-		e.JSON(http.StatusOK, map[string]string{
-			"status": "success",
-		})
-
-		return nil
+		return e.JSON(http.StatusOK, utils.NewSuccessResponse())
 	}
-
 }
 
 func applyMovement(app *stocker.StockerApp, record *core.Record) error {
@@ -155,28 +149,47 @@ func applyMovement(app *stocker.StockerApp, record *core.Record) error {
 	return err
 }
 
-var handleDeleteMovement stocker.StockerHandlerBuilder = func(app *stocker.StockerApp) stocker.PbHandlerFunc {
+var handleAnnulMovement stocker.StockerHandlerBuilder = func(app *stocker.StockerApp) stocker.PbHandlerFunc {
 	return func(e *core.RequestEvent) error {
 		movementId := e.Request.PathValue("movementId")
 		if movementId == "" {
-			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseString("must provide a movement id"))
+			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseMessage("must provide a movement id"))
 		}
 
 		record, err := app.PbApp.FindRecordById(stocker.CollectionMovements, movementId)
 		if err != nil {
-			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseString("no movements match the supplied id"))
+			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseMessage("no movements match the supplied id"))
 		}
 
-		if record.GetString("state") == "CLOSED" {
-			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseString("tried to delete a closed movement"))
+		var actionErr error
+		switch state := record.GetString("state"); state {
+		case "CLOSED":
+			annullMovement(app, record)
+		case "OPEN":
+			deleteMovement(app, record)
+		default:
+			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponseMessage("unknown movement state "+ state))
 		}
 
-		record.Set("deleted", time.Now().UTC().Format(time.RFC3339))
+		if actionErr != nil {
+			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(actionErr))
+		}
 
-		app.PbApp.Save(record)
-
-		return e.JSON(http.StatusAccepted, map[string]string{
-			"status": "success",
-		})
+		return e.JSON(http.StatusOK, utils.NewSuccessResponse())
 	}
+}
+
+func deleteMovement(app *stocker.StockerApp, record *core.Record) error {
+	err := app.PbApp.Delete(record)
+
+	return err
+}
+
+func annullMovement(app *stocker.StockerApp, record *core.Record) error {
+	// cambiar nombre de columna deleted -> annulled
+	// revertir movimientos de stock
+	// poner estado anulado (decidir si cambiar la columna state o dejarla como esta y poner fecha (annulled))
+	// NO ELIMINAR FISICAMENTE
+	
+	return errors.New("not implemented")
 }
