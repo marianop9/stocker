@@ -5,7 +5,16 @@ import { MovementState, MovementType } from "@/models/movements";
 dayjs.extend(utc);
 
 export const getMovementType = (t: MovementType) => (t === "IN" ? "Entrada" : "Salida");
-export const getMovementState = (s: MovementState) => (s === "OPEN" ? "Abierto" : "Cerrado");
+
+export const getMovementState = (s: MovementState) => {
+    if (s === "OPEN") {
+        return "Abierto";
+    } else if (s === "CLOSED") {
+        return "Cerrado";
+    } else {
+        return "Anulado";
+    }
+};
 
 export const formatDate = (d: string) => {
     return dayjs.utc(d).format("DD/MM/YY");

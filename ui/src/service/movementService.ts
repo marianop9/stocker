@@ -15,7 +15,6 @@ export const movementService: IMovementService = {
     list() {
         return pbClient.movements.getList(1, 50, {
             sort: "-date",
-            filter: "deleted = ''",
         });
     },
     get(id) {

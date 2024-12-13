@@ -1,5 +1,5 @@
 export type MovementType = "IN" | "OUT";
-export type MovementState = "OPEN" | "CLOSED";
+export type MovementState = "OPEN" | "CLOSED" | "ANNULLED";
 
 export interface IMovementDto {
     id: string;

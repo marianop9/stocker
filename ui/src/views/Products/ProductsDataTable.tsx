@@ -12,10 +12,12 @@ const columns: ColumnDef<IProductView>[] = [
     {
         accessorKey: "name",
         header: "Nombre",
+        filterFn: "includesString",
     },
     {
         accessorKey: "categoryName",
         header: "Categoria",
+        filterFn: "includesString",
     },
     {
         accessorKey: "providerName",
