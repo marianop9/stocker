@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/hook"
@@ -16,11 +15,11 @@ var defaultMiddleware []*hook.Handler[*core.RequestEvent] = []*hook.Handler[*cor
 }
 
 type StockerApp struct {
-	PbApp    *pocketbase.PocketBase
+	PbApp    core.App
 	handlers []Handler
 }
 
-func NewStockerApp(pocketbaseApp *pocketbase.PocketBase) *StockerApp {
+func NewStockerApp(pocketbaseApp core.App) *StockerApp {
 	return &StockerApp{
 		PbApp:    pocketbaseApp,
 		handlers: []Handler{},
