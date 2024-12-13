@@ -12,6 +12,7 @@ import (
 	"github.com/marianop9/stocker/app/stocker"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/tests"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -115,6 +116,65 @@ func TestCreateStockEntry(t *testing.T) {
 				}
 				if count != 2 {
 					t.Fatalf("expected 2 records, found %d", count)
+				}
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		scenario.Test(t)
+	}
+}
+
+func TestAnnulStockEntry(t *testing.T) {
+	userToken, err := generateDefaultUserToken()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// setup the test ApiScenario app instance
+	setupTestApp := func(t testing.TB) *tests.TestApp {
+		testApp, err := tests.NewTestApp(getTestDataDir())
+		if err != nil {
+			t.Fatal(err)
+		}
+		// no need to cleanup since scenario.Test() will do that for us
+		// defer testApp.Cleanup()
+
+		stockerApp := stocker.NewStockerApp(testApp)
+		RegisterMovementsHandlers(stockerApp)
+		stockerApp.RegisterCustomHandlers()
+
+		return testApp
+	}
+
+	movementId := "mov2annul123456"
+
+	scenarios := []tests.ApiScenario{
+		{
+			Name:            "annul stock entry",
+			Method:          http.MethodDelete,
+			URL:             customEndpointBuilder(stocker.ModuleMovements, movementId),
+			Headers:         map[string]string{"Authorization": userToken},
+			ExpectedStatus:  http.StatusOK,
+			ExpectedContent: []string{`"success":true`},
+			TestAppFactory:  setupTestApp,
+			AfterTestFunc: func(t testing.TB, app *tests.TestApp, res *http.Response) {
+				// verify state
+				rec, err := app.FindRecordById(stocker.CollectionMovements, movementId)
+				assert.NoError(t, err)
+				assert.Equal(t, MovementStateAnnulled, rec.GetString("state"))
+
+				productUnitIds := []string{"74x42nz242t2jay", "6pvbfe4m894l680"}
+				// verify product units were updated (their quantities reduced)
+				units, err := app.FindRecordsByIds(stocker.CollectionProductUnits, productUnitIds)
+				assert.NoError(t, err)
+				for _, unit := range units {
+					if unit.Id == "74x42nz242t2jay" {
+						assert.Equal(t, 1, unit.GetInt("quantity"))
+					} else {
+						assert.Equal(t, 2, unit.GetInt("quantity"))
+					}
 				}
 			},
 		},

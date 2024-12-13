@@ -2,22 +2,13 @@ package movements
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/marianop9/stocker/app/stocker"
 	"github.com/marianop9/stocker/app/stocker/utils"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-)
-
-const (
-	MovementTypeIn  = "IN"
-	MovementTypeOut = "OUT"
-)
-
-const (
-	MovementStateOpen   = "OPEN"
-	MovementStateClosed = "CLOSED"
 )
 
 const (
@@ -129,7 +120,7 @@ func applyMovement(app *stocker.StockerApp, record *core.Record) error {
 			if movType == MovementTypeIn {
 				productUnit.Set("quantity+", child.GetInt("quantity"))
 			} else {
-				panic("MovTypeOut not implemented")
+				return errors.New("MovTypeOut not implemented")
 			}
 
 			if err := txApp.Save(productUnit); err != nil {
@@ -162,17 +153,14 @@ var handleAnnulMovement stocker.StockerHandlerBuilder = func(app *stocker.Stocke
 		}
 
 		var actionErr error
-		switch state := record.GetString("state"); state {
-		case "CLOSED":
-			annullMovement(app, record)
-		case "OPEN":
-			deleteMovement(app, record)
-		default:
-			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponseMessage("unknown movement state "+ state))
+		if state := record.GetString("state"); state == MovementStateOpen {
+			actionErr = deleteMovement(app, record)
+		} else {
+			actionErr = annullMovement(app, record)
 		}
 
 		if actionErr != nil {
-			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(actionErr))
+			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(fmt.Errorf("failed to delete/annul movement: %w", actionErr)))
 		}
 
 		return e.JSON(http.StatusOK, utils.NewSuccessResponse())
@@ -180,16 +168,64 @@ var handleAnnulMovement stocker.StockerHandlerBuilder = func(app *stocker.Stocke
 }
 
 func deleteMovement(app *stocker.StockerApp, record *core.Record) error {
-	err := app.PbApp.Delete(record)
+	prevState := record.GetString("state")
+	err := checkStateTransition(prevState, MovementStateAnnulled)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return app.PbApp.Delete(record)
 }
 
 func annullMovement(app *stocker.StockerApp, record *core.Record) error {
-	// cambiar nombre de columna deleted -> annulled
-	// revertir movimientos de stock
-	// poner estado anulado (decidir si cambiar la columna state o dejarla como esta y poner fecha (annulled))
 	// NO ELIMINAR FISICAMENTE
-	
-	return errors.New("not implemented")
+	prevState := record.GetString("state")
+	newState := MovementStateAnnulled
+	err := checkStateTransition(prevState, newState)
+	if err != nil {
+		return err
+	}
+
+	// revertir movimientos de stock
+	movType := record.GetString("type")
+
+	var childCollectionName string
+	switch movType {
+	case MovementTypeIn:
+		childCollectionName = stocker.CollectionStockEntries
+	default:
+		return errors.New(ErrTypeNotSupported)
+	}
+
+	// stock entries/exits
+	childRecords, err := app.PbApp.FindAllRecords(childCollectionName, dbx.HashExp{"movementId": record.Id})
+	if err != nil {
+		return err
+	}
+
+	err = app.PbApp.RunInTransaction(func(txApp core.App) error {
+		// each child holds the quantity to add/subtract for a single product_unit
+		for _, child := range childRecords {
+			productUnit, err := txApp.FindRecordById(stocker.CollectionProductUnits, child.GetString("productUnitId"))
+			if err != nil {
+				return err
+			}
+
+			if movType == MovementTypeIn {
+				productUnit.Set("quantity-", child.GetInt("quantity"))
+			} else {
+				return errors.New("MovTypeOut not implemented")
+			}
+
+			if err := txApp.Save(productUnit); err != nil {
+				return err
+			}
+		}
+
+		// pasar mov a estado anulado
+		record.Set("state", newState)
+		return txApp.Save(record)
+	})
+
+	return err
 }
