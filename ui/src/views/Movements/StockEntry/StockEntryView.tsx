@@ -6,22 +6,28 @@ import ProductSearch from "../ProductSearch";
 import { useState } from "react";
 import { IProductView } from "@/models/products";
 import StockEntryAddProductsForm from "./StockEntryAddProductsForm";
-import { movementService } from "@/service/movementService";
 import MovementOverview from "../MovementOverview";
 import StockEntryProductDetails from "./StockEntryProductDetails";
 import { useStockEntryProductsQuery } from "./useStockEntryProductsQuery";
 import AppConfirm from "@/components/AppConfirm";
 import AppBackNavButton from "@/components/AppBackNavButton";
 import { AppControlledDialogWrapper } from "@/components/AppDialogWrapper";
+import AppAlertError from "@/components/AppAlertError";
+import AppAlertSuccess from "@/components/AppAlertSuccess";
+import { useFetcher } from "react-router-dom";
+import { CustomEndpointResponse } from "@/service/pocketbase";
 
 function StockEntryView() {
     const movement = useAppRouterLoaderData(stockEntryViewLoader);
 
     const [isAddProductsDialogOpen, setIsAddProductsDialogOpen] = useState(false);
-
     const [selecetedProduct, setSelectedProduct] = useState<IProductView | null>(null);
 
     const { data: stockEntryProducts, invalidateQuery } = useStockEntryProductsQuery(movement.id);
+
+    const fetcher = useFetcher<CustomEndpointResponse>();
+    const closedSuccess = fetcher.data && fetcher.data.success;
+    const closeMovementError = fetcher.data && !fetcher.data.success ? fetcher.data.message : "";
 
     function handleProductAdded() {
         invalidateQuery();
@@ -29,13 +35,7 @@ function StockEntryView() {
     }
 
     async function closeMovement() {
-        const result = await movementService.close(movement.id);
-
-        if (!result.success) {
-            console.error(result.error);
-        } else {
-            alert("movimiento cerrado!");
-        }
+        fetcher.submit(null, { method: "POST" });
     }
 
     return (
@@ -43,6 +43,13 @@ function StockEntryView() {
             <div className="mb-4">
                 <AppBackNavButton />
             </div>
+            <AppAlertError message={closeMovementError} />
+            {closedSuccess && (
+                <AppAlertSuccess
+                    title="Movimiento cerrado"
+                    message="Movimiento cerrado con éxito."
+                />
+            )}
             <div className="flex">
                 <div className="w-2/3">
                     <MovementOverview movement={movement} />

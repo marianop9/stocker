@@ -8,9 +8,7 @@ const MovementFormSchema = z.object({
     reference: z.string().max(200),
 });
 
-export type MovementFormSchemaErrors = z.inferFormattedError<
-    typeof MovementFormSchema
->;
+export type MovementFormSchemaErrors = z.inferFormattedError<typeof MovementFormSchema>;
 export type MovementFormServerError = string;
 
 export const movementFormActions: ActionFunction = async (ctx) => {
@@ -25,9 +23,7 @@ export const movementFormActions: ActionFunction = async (ctx) => {
 const createMovementAction: ActionFunction = async ({ request }) => {
     const form = await request.formData();
 
-    const { success, data, error } = MovementFormSchema.safeParse(
-        Object.fromEntries(form),
-    );
+    const { success, data, error } = MovementFormSchema.safeParse(Object.fromEntries(form));
 
     if (!success) return error.format();
 
@@ -57,16 +53,8 @@ const deleteMovementAction: ActionFunction = async ({ request }) => {
 
     const resp = await movementService.delete(id as string);
     if (!resp.success) {
-        console.log(resp.error.response.message);
-
-        return {
-            ok: false,
-            error: resp.error.response.message,
-        };
+        console.log(resp.message);
     }
 
-    return {
-        ok: true,
-        error: "",
-    };
+    return resp;
 };

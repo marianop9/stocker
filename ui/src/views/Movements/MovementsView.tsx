@@ -10,7 +10,10 @@ import { Button } from "@/components/ui/button";
 import { useFetcher } from "react-router-dom";
 import useAppRouterLoaderData from "@/lib/hooks/useAppRouterLoaderData";
 import { movementsLoader } from "./movementsLoader";
-import { formatDate, getMovementState, getMovementType } from "@/lib/formatters";
+import { formatDate, getMovementState } from "@/lib/formatters";
+import { AppMovementTypeBadge } from "@/components/AppBadgeColored";
+import AppStatefulBadge from "@/components/AppBadgeStateful";
+import { CustomEndpointResponse } from "@/service/pocketbase";
 
 function useMovementColumns(onDelete: (id: string) => void) {
     const colums: ColumnDef<IMovementDto>[] = [
@@ -27,7 +30,7 @@ function useMovementColumns(onDelete: (id: string) => void) {
         {
             header: "Tipo",
             accessorKey: "type",
-            cell: ({ row }) => <>{getMovementType(row.original.type)}</>,
+            cell: ({ row }) => <AppMovementTypeBadge type={row.original.type} />,
             filterFn: "arrIncludesSome",
             meta: {
                 variant: "checkboxes",
@@ -40,7 +43,18 @@ function useMovementColumns(onDelete: (id: string) => void) {
         {
             header: "Estado",
             accessorKey: "state",
-            cell: ({ row }) => <>{getMovementState(row.original.state)}</>,
+            cell: ({ row }) => (
+                <AppStatefulBadge
+                    label={getMovementState(row.original.state)}
+                    type={
+                        row.original.state === "OPEN"
+                            ? "success"
+                            : row.original.state === "ANNULLED"
+                              ? "secondary"
+                              : "primary"
+                    }
+                />
+            ),
             meta: {
                 variant: "checkboxes",
                 filterOpts: [
@@ -82,9 +96,9 @@ function MovementsView() {
     renderCounter.current = renderCounter.current + 1;
 
     const { movements } = useAppRouterLoaderData(movementsLoader);
-    const fetcher = useFetcher<{ ok: boolean; error: string }>();
+    const fetcher = useFetcher<CustomEndpointResponse>();
 
-    const hasError = fetcher.data && !fetcher.data.ok;
+    const hasError = fetcher.data && !fetcher.data.success;
 
     function handleDelete(id: string) {
         fetcher.submit({ id: id }, { method: "DELETE" });
@@ -99,7 +113,7 @@ function MovementsView() {
     return (
         <>
             {hasError && (
-                <p className="my-4 p-2 rounded-md bg-red-400 text">{fetcher.data?.error}</p>
+                <p className="my-4 p-2 rounded-md bg-red-400 text">{fetcher.data?.message}</p>
             )}
             {renderCounter.current}
 

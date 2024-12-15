@@ -1,14 +1,14 @@
 import { IMovementDto, IStockEntryDto, IStockEntryProductView } from "@/models/movements";
 import { executeService, ServiceResponse } from "./serviceResponse";
-import { pbClient } from "./pocketbase";
+import { CustomEndpointResponse, pbClient } from "./pocketbase";
 import { ListResult } from "pocketbase";
 
 interface IMovementService {
     list(): Promise<ListResult<IMovementDto>>;
     get(id: string): Promise<IMovementDto>;
     create(entity: IMovementDto): Promise<ServiceResponse<IMovementDto>>;
-    close(id: string): Promise<ServiceResponse<any>>;
-    delete(id: string): Promise<ServiceResponse<any>>;
+    close(id: string): Promise<CustomEndpointResponse>;
+    delete(id: string): Promise<CustomEndpointResponse>;
 }
 
 export const movementService: IMovementService = {
@@ -27,12 +27,11 @@ export const movementService: IMovementService = {
     },
     close(id) {
         const promise = pbClient.callCustomEndpoint("movements", `${id}/close`, {}, "POST");
-        return executeService(promise);
+        return promise;
     },
     delete(id) {
         const promise = pbClient.callCustomEndpoint("movements", id, {}, "DELETE");
-
-        return executeService(promise);
+        return promise;
     },
 };
 

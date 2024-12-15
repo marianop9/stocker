@@ -4,10 +4,7 @@ import AdmininstrationsView from "@/views/Administrations/AdministrationsView";
 import HomeView from "@/views/Home/HomeView";
 import ProductUnitView from "@/views/Products/Detail/ProductUnitView";
 import { productUnitLoader } from "@/views/Products/Detail/productUnitLoader";
-import {
-    productCreateAction,
-    productsLoader,
-} from "@/views/Products/productsLoader";
+import { productCreateAction, productsLoader } from "@/views/Products/productsLoader";
 import ProductsView from "@/views/Products/ProductsView";
 import { createBrowserRouter } from "react-router-dom";
 import PrivateRoute from "@/components/PrivateRoute";
@@ -17,6 +14,7 @@ import { movementFormActions } from "@/views/Movements/movementFormActions";
 import StockEntryView from "@/views/Movements/StockEntry/StockEntryView";
 import { stockEntryViewLoader } from "@/views/Movements/StockEntry/stockEntryViewLoader";
 import { movementsLoader } from "@/views/Movements/movementsLoader";
+import { stockEntryViewActions } from "@/views/Movements/StockEntry/stockEntryViewActions";
 
 const router = createBrowserRouter([
     {
@@ -59,6 +57,7 @@ const router = createBrowserRouter([
                     {
                         path: "movements/:id",
                         element: <StockEntryView />,
+                        action: stockEntryViewActions,
                         loader: stockEntryViewLoader,
                     },
                 ],

@@ -40,7 +40,11 @@ function AppColumnFilter({ column }: Props) {
         <div className="flex gap-2 items-center">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button className="p-0" size="sm" variant="ghost">
+                    <Button
+                        className="p-0 rounded-3xl"
+                        size="icon"
+                        variant={column.getIsFiltered() ? "secondary" : "ghost"}
+                    >
                         <Filter className="w-4 h-4" />
                     </Button>
                 </DropdownMenuTrigger>

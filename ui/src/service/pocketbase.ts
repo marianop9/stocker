@@ -2,11 +2,14 @@ import type { ICategory, IColor, IProvider, ISize } from "@/models/administratio
 import { IMovementDto, IStockEntryDto, IStockEntryProductDto } from "@/models/movements";
 import type { IProductUnitView, IProductDto, IProductView } from "@/models/products";
 import IUser from "@/models/user";
-import Client, { RecordService } from "pocketbase";
+import Client, { ClientResponseError, RecordService } from "pocketbase";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-type CustomEndpointResponse = any;
+export type CustomEndpointResponse = {
+    success: boolean;
+    message: string;
+};
 
 class PocketBaseClient {
     private pb: Client;
@@ -23,7 +26,7 @@ class PocketBaseClient {
         return this.pb;
     }
 
-    callCustomEndpoint<T = CustomEndpointResponse>(
+    async callCustomEndpoint<T = CustomEndpointResponse>(
         module: string,
         action: string,
         body: any,
@@ -31,10 +34,19 @@ class PocketBaseClient {
     ): Promise<T> {
         const url = `/api/custom/${module}/${action}`;
 
-        return this.getInternalClient().send<T>(url, {
-            body,
-            method,
-        });
+        try {
+            return await this.getInternalClient().send<T>(url, {
+                body,
+                method,
+            });
+        } catch (err: any) {
+            if (err instanceof ClientResponseError) {
+                return err.response as T;
+            }
+            console.log("err is not instance of ClienResponseError!!");
+
+            throw err;
+        }
     }
 
     get users(): RecordService<IUser> {

@@ -1,3 +1,5 @@
+import { ClientResponseError } from "pocketbase";
+
 export type ServiceResponse<T> = ServiceSuccess<T> | ServiceError;
 
 export class ServiceSuccess<T> {
@@ -19,13 +21,17 @@ export class ServiceError {
     }
 }
 
-export type ClientResponseError = {
-    url: string; // requested url
-    status: number; // response status code
-    response: PocketBaseError; // the API JSON error response
-    isAbort: boolean; // is abort/cancellation error
-    originalError: Error | null; // the original non-normalized error
-};
+// class AppClientResponseError extends ClientResponseError {
+//     data
+// }
+
+// export type ClientResponseError = {
+//     url: string; // requested url
+//     status: number; // response status code
+//     response: { ... } // the API JSON error response
+//     isAbort: boolean; // is abort/cancellation error
+//     originalError: Error | null; // the original non-normalized error
+// };
 
 export type PocketBaseError = {
     code: number;
@@ -33,24 +39,10 @@ export type PocketBaseError = {
     data: unknown;
 };
 
-function isClientResponseError(err: unknown): err is ClientResponseError {
-    const error = err as ClientResponseError;
-
-    return error && typeof error.isAbort === "boolean" && typeof error.originalError === "object";
-}
-
 // if service fails check if it is a pocketbase error, otherwise throw.
 // if service executed succesfully, return the result
 export async function executeService<T>(promise: Promise<T>): Promise<ServiceResponse<T>> {
     return promise
         .then((result) => new ServiceSuccess(result))
-        .catch((error) => {
-            if (isClientResponseError(error)) {
-                const resp = new ServiceError(error);
-                console.error(resp);
-                return resp;
-            } else {
-                throw error;
-            }
-        });
+        .catch((error: ClientResponseError) => new ServiceError(error));
 }
