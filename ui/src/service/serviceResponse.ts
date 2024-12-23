@@ -1,6 +1,6 @@
 import { ClientResponseError } from "pocketbase";
 
-export type ServiceResponse<T> = ServiceSuccess<T> | ServiceError;
+export type ServiceResponse<T = {}> = ServiceSuccess<T> | ServiceError;
 
 export class ServiceSuccess<T> {
     success: true;

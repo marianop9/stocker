@@ -11,10 +11,9 @@ import PrivateRoute from "@/components/PrivateRoute";
 import LoginView from "@/views/Login/LoginView";
 import MovementsView from "@/views/Movements/MovementsView";
 import { movementFormActions } from "@/views/Movements/movementFormActions";
-import StockEntryView from "@/views/Movements/StockEntry/StockEntryView";
-import { stockEntryViewLoader } from "@/views/Movements/StockEntry/stockEntryViewLoader";
 import { movementsLoader } from "@/views/Movements/movementsLoader";
-import { stockEntryViewActions } from "@/views/Movements/StockEntry/stockEntryViewActions";
+import MovementDetailView from "@/views/Movements/MovementDetail/MovementDetailView";
+import movementDetailViewLoader from "@/views/Movements/MovementDetail/movementDetailViewLoader";
 
 const router = createBrowserRouter([
     {
@@ -54,11 +53,17 @@ const router = createBrowserRouter([
                         action: movementFormActions,
                         loader: movementsLoader,
                     },
+                    // {
+                    //     path: "movements/:id",
+                    //     element: <StockEntryView />,
+                    //     action: stockEntryViewActions,
+                    //     loader: stockEntryViewLoader,
+                    // },
                     {
                         path: "movements/:id",
-                        element: <StockEntryView />,
-                        action: stockEntryViewActions,
-                        loader: stockEntryViewLoader,
+                        element: <MovementDetailView />,
+                        // action: ,
+                        loader: movementDetailViewLoader,
                     },
                 ],
             },

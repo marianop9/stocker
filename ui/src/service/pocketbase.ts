@@ -1,5 +1,10 @@
 import type { ICategory, IColor, IProvider, ISize } from "@/models/administrations";
-import { IMovementDto, IStockEntryDto, IStockEntryProductDto } from "@/models/movements";
+import {
+    IMovementDetailProductsDto,
+    IMovementDto,
+    IStockEntryProductDto,
+    IStockMovementDto,
+} from "@/models/movements";
 import type { IProductUnitView, IProductDto, IProductView } from "@/models/products";
 import IUser from "@/models/user";
 import Client, { ClientResponseError, RecordService } from "pocketbase";
@@ -34,19 +39,26 @@ class PocketBaseClient {
     ): Promise<T> {
         const url = `/api/custom/${module}/${action}`;
 
-        try {
-            return await this.getInternalClient().send<T>(url, {
-                body,
-                method,
-            });
-        } catch (err: any) {
-            if (err instanceof ClientResponseError) {
-                return err.response as T;
-            }
-            console.log("err is not instance of ClienResponseError!!");
+        /* if the response returns 400+, the internal client throws an error wrapped in a ClientResponseError
+        and stores the response inside `data`/`response` property of ClientResponseError
+        */
+        return await this.getInternalClient().send<T>(url, {
+            body,
+            method,
+        });
+        // try {
+        //     return await this.getInternalClient().send<T>(url, {
+        //         body,
+        //         method,
+        //     });
+        // } catch (err: any) {
+        //     if (err instanceof ClientResponseError) {
+        //         return err.response as T;
+        //     }
+        //     console.log("err is not instance of ClienResponseError!!");
 
-            throw err;
-        }
+        //     throw err;
+        // }
     }
 
     get users(): RecordService<IUser> {
@@ -81,8 +93,12 @@ class PocketBaseClient {
         return this.pb.collection("product_units_view");
     }
 
-    get stockEntries(): RecordService<IStockEntryDto> {
+    get stockEntries(): RecordService<IStockMovementDto> {
         return this.pb.collection("stock_entries");
+    }
+
+    get stockExits(): RecordService<IStockMovementDto> {
+        return this.pb.collection("stock_exits");
     }
 
     get movements(): RecordService<IMovementDto> {
@@ -91,6 +107,10 @@ class PocketBaseClient {
 
     get stockEntryProductsView(): RecordService<IStockEntryProductDto> {
         return this.pb.collection("stock_entry_products_view");
+    }
+
+    get stockExitProductsView(): RecordService<IMovementDetailProductsDto> {
+        return this.pb.collection("stock_exit_products_view");
     }
 }
 

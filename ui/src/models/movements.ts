@@ -9,14 +9,14 @@ export interface IMovementDto {
     reference: string;
 }
 
-interface IStockMovement {
+export interface IStockMovementDto {
     id: string;
     movementId: string;
-    productUnitId: string;
-    quantity: number;
+    units: {
+        productUnitId: string;
+        quantity: number;
+    }[];
 }
-
-export interface IStockEntryDto extends IStockMovement {}
 
 // pocketbase view collection
 export interface IStockEntryProductDto {
@@ -42,6 +42,39 @@ export interface IStockEntryProductView {
     movementId: string;
     units: {
         stockEntryId: string;
+        quantity: number;
+        productUnitId: string;
+        colorName: string;
+        colorHexcode: string;
+        sizeAlias: string;
+    }[];
+}
+
+// pocketbase view collection
+export interface IMovementDetailProductsDto {
+    stockEntryId: string;
+    stockExitId: string;
+    movementId: string;
+    productUnitId: string;
+    quantity: number;
+    productId: string;
+    name: string;
+    cost: number;
+    price: number;
+    colorName: string;
+    colorHexcode: string;
+    sizeAlias: string;
+}
+
+export interface IMovementDetailProductsView {
+    movementId: string;
+    movementType: MovementType;
+    productId: string;
+    name: string;
+    cost: number;
+    price: number;
+    units: {
+        movementDetailId: string; // stock entry/exit
         quantity: number;
         productUnitId: string;
         colorName: string;

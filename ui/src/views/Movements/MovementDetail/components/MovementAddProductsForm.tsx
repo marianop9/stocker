@@ -5,34 +5,43 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useProductUnitsListService } from "@/lib/hooks/useProductUnitsService";
-import { IMovementDto, IStockEntryDto, IStockEntryProductView } from "@/models/movements";
+import {
+    IMovementDto,
+    IStockEntryDto,
+    IStockEntryProductView,
+    IStockMovementDto,
+} from "@/models/movements";
 import { IProductUnitView, IProductView } from "@/models/products";
 import { stockEntryService } from "@/service/movementService";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useMovementDetailContext } from "../movementDetailContext";
+import AppAlert from "@/components/AppAlert";
 
-interface StockEntryAddProductsFormProps {
+interface MovementAddProductsFormProps {
     movement: IMovementDto;
     product: IProductView | null;
-    stockEntryProduct: IStockEntryProductView | null;
+    // stockEntryProduct: IStockEntryProductView | null;
     onProductAdded: () => void;
 }
 
-function StockEntryAddProductsForm({
+export default function MovementAddProductsForm({
     movement,
     product,
-    stockEntryProduct,
     onProductAdded,
-}: StockEntryAddProductsFormProps) {
-    if (!product) return <></>;
-
-    const { data: productUnits = [] } = useProductUnitsListService(product.id);
-
+}: MovementAddProductsFormProps) {
     const [quantity, setQuantity] = useState("");
     const [quantityValidation, setQuantityValidation] = useState("");
 
     const [selectedRows, setSelectedRows] = useState<RowSelectionState>({});
     const [selectedRowsValidation, setSelectedRowsValidation] = useState("");
+
+    const [serverError, setServerError] = useState("");
+
+    const { data: productUnits = [] } = useProductUnitsListService(product?.id ?? "");
+
+    const { movementProducts, createStockMovementMutation } = useMovementDetailContext();
+    const selectedMovementProduct = movementProducts.find((p) => p.productId === product?.id);
 
     async function handleSave() {
         setQuantityValidation("");
@@ -50,20 +59,24 @@ function StockEntryAddProductsForm({
             return;
         }
 
-        const stockEntries: IStockEntryDto[] = selectedUnitIds.map((prodUnitId) => ({
+        const stockMovements: IStockMovementDto = {
             id: "",
             movementId: movement.id,
-            productUnitId: prodUnitId,
-            quantity: qty,
-        }));
+            units: selectedUnitIds.map((prodUnitId) => ({
+                productUnitId: prodUnitId,
+                quantity: qty,
+            })),
+        };
 
-        const response = await stockEntryService.create(stockEntries);
-
-        if (!response.success) {
-            console.error(response.error);
-        } else {
-            onProductAdded();
-        }
+        createStockMovementMutation.mutate(stockMovements, {
+            onSuccess(data, variables, context) {
+                onProductAdded();
+            },
+            onError(error, variables, context) {
+                console.log(error.response);
+                setServerError(error.response.message);
+            },
+        });
     }
 
     const columns: ColumnDef<IProductUnitView>[] = useMemo(
@@ -84,7 +97,7 @@ function StockEntryAddProductsForm({
                         checked={row.getIsSelected()}
                         onCheckedChange={row.getToggleSelectedHandler()}
                         disabled={
-                            stockEntryProduct?.units.find(
+                            selectedMovementProduct?.units.find(
                                 (x) => x.productUnitId === row.getValue("id"),
                             ) !== undefined
                         }
@@ -112,7 +125,7 @@ function StockEntryAddProductsForm({
                 header: "Cantidad",
                 cell: ({ row }) => (
                     <span>
-                        {stockEntryProduct?.units.find(
+                        {selectedMovementProduct?.units.find(
                             (x) => x.productUnitId === row.getValue("id"),
                         )?.quantity ?? "-"}
                     </span>
@@ -126,52 +139,54 @@ function StockEntryAddProductsForm({
                 header: "Talle",
             },
         ],
-        [productUnits, stockEntryProduct],
+        [productUnits, selectedMovementProduct],
     );
 
     return (
-        <>
-            {/* Se podria hacer sticky envolviendo los datos de producto con el sig. div
-             <div className="p-4 top-0 sticky bg-background z-10">
-            </div> */}
-            <div className="flex justify-between mb-4">
-                <AppFormEntry label="Producto" name="" readonly>
-                    <div>{product.name}</div>
-                </AppFormEntry>
-                <AppFormEntry label="Categoria / Proveedor" name="" readonly>
-                    {product.categoryName} / {product.providerName}
-                </AppFormEntry>
-            </div>
-            <div className="flex justify-between">
-                <AppFormEntry label="Precio" name="price" className="w-1/3" readonly>
-                    {product.price}
-                </AppFormEntry>
-                <AppFormEntry
-                    label="Cantidad"
-                    name="qty"
-                    className="w-1/3"
-                    errors={quantityValidation}
-                >
-                    <Input
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
-                    />
-                </AppFormEntry>
-            </div>
-            <AppDataTable
-                columns={columns}
-                data={productUnits}
-                getRowId={(row) => row.id}
-                rowSelection={selectedRows}
-                onRowSelectionChange={setSelectedRows}
-            />
-            <AppFormValidationMessage message={selectedRowsValidation} />
-            <AppDialogFooter className="flex justify-end">
-                <Button onClick={handleSave}>Agregar</Button>
-            </AppDialogFooter>
-        </>
+        product && (
+            <>
+                {/* Se podria hacer sticky envolviendo los datos de producto con el sig. div
+                    <div className="p-4 top-0 sticky bg-background z-10">
+                    </div> 
+                */}
+                <div className="flex justify-between mb-4">
+                    <AppFormEntry label="Producto" name="" readonly>
+                        <div>{product.name}</div>
+                    </AppFormEntry>
+                    <AppFormEntry label="Categoria / Proveedor" name="" readonly>
+                        {product.categoryName} / {product.providerName}
+                    </AppFormEntry>
+                </div>
+                <div className="flex justify-between">
+                    <AppFormEntry label="Precio" name="price" className="w-1/3" readonly>
+                        {product.price}
+                    </AppFormEntry>
+                    <AppFormEntry
+                        label="Cantidad"
+                        name="qty"
+                        className="w-1/3"
+                        errors={quantityValidation}
+                    >
+                        <Input
+                            type="number"
+                            value={quantity}
+                            onChange={(e) => setQuantity(e.target.value)}
+                        />
+                    </AppFormEntry>
+                </div>
+                <AppAlert variant="error" message={serverError} />
+                <AppDataTable
+                    columns={columns}
+                    data={productUnits}
+                    getRowId={(row) => row.id}
+                    rowSelection={selectedRows}
+                    onRowSelectionChange={setSelectedRows}
+                />
+                <AppFormValidationMessage message={selectedRowsValidation} />
+                <AppDialogFooter className="flex justify-end">
+                    <Button onClick={handleSave}>Agregar</Button>
+                </AppDialogFooter>
+            </>
+        )
     );
 }
-
-export default StockEntryAddProductsForm;

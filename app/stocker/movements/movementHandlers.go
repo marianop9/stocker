@@ -17,24 +17,37 @@ const (
 	ErrIsDeleted        = "movement is deleted"
 )
 
-var handleCreateStockEntry stocker.StockerHandlerBuilder = func(app *stocker.StockerApp) stocker.PbHandlerFunc {
+var handleCreateStockMovement stocker.StockerHandlerBuilder = func(app *stocker.StockerApp) stocker.PbHandlerFunc {
 	return func(e *core.RequestEvent) error {
-		var reqBody []StockEntryDto
+		var reqBody StockMovementDto
 		if err := e.BindBody(&reqBody); err != nil {
 			return e.JSON(http.StatusBadRequest, utils.NewErrorResponse(err))
 		}
 
-		collection, err := app.PbApp.FindCollectionByNameOrId(stocker.CollectionStockEntries)
+		movement, err := app.PbApp.FindRecordById(stocker.CollectionMovements, reqBody.MovementId)
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, utils.NewErrorResponse(err))
+		}
+		movementType := movement.GetString("type")
+
+		var movementTypeCollection string
+		if movementType == MovementTypeIn {
+			movementTypeCollection = stocker.CollectionStockEntries
+		} else if movementType == MovementTypeOut {
+			movementTypeCollection = stocker.CollectionStockExits
+		}
+
+		collection, err := app.PbApp.FindCollectionByNameOrId(movementTypeCollection)
 		if err != nil {
 			return e.JSON(http.StatusBadRequest, utils.NewErrorResponse(err))
 		}
 
 		err = app.PbApp.RunInTransaction(func(txApp core.App) error {
-			for _, stockEntry := range reqBody {
+			for _, stockEntry := range reqBody.Units {
 				record := core.NewRecord(collection)
 
 				record.Load(map[string]any{
-					"movementId":    stockEntry.MovementId,
+					"movementId":    reqBody.MovementId,
 					"productUnitId": stockEntry.ProductUnitId,
 					"quantity":      stockEntry.Quantity,
 				})
@@ -51,9 +64,7 @@ var handleCreateStockEntry stocker.StockerHandlerBuilder = func(app *stocker.Sto
 			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(err))
 		}
 
-		return e.JSON(http.StatusOK, map[string]int{
-			"len": len(reqBody),
-		})
+		return e.JSON(http.StatusOK, utils.NewSuccessResponse())
 	}
 }
 

@@ -11,4 +11,5 @@ const (
 	CollectionProductUnits = "product_units"
 	CollectionMovements    = "movements"
 	CollectionStockEntries = "stock_entries"
+	CollectionStockExits   = "stock_exits"
 )

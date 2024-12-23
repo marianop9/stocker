@@ -1,4 +1,9 @@
-import { IMovementDto, IStockEntryDto, IStockEntryProductView } from "@/models/movements";
+import {
+    IMovementDetailProductsDto,
+    IMovementDetailProductsView,
+    IMovementDto,
+    IStockMovementDto,
+} from "@/models/movements";
 import { executeService, ServiceResponse } from "./serviceResponse";
 import { CustomEndpointResponse, pbClient } from "./pocketbase";
 import { ListResult } from "pocketbase";
@@ -35,27 +40,31 @@ export const movementService: IMovementService = {
     },
 };
 
-interface IStockEntryService {
-    listProducts(movementId: string): Promise<IStockEntryProductView[]>;
-    create(entity: IStockEntryDto[]): Promise<ServiceResponse<unknown>>;
-    setQuantity(stockEntryId: string, qty: number): Promise<ServiceResponse<IStockEntryDto>>;
-    delete(stockEntryId: string): Promise<ServiceResponse<unknown>>;
+interface IStockMovementService {
+    listProducts(movementId: string): Promise<IMovementDetailProductsView[]>;
+    // listProducts2(
+    //     movementType: MovementType,
+    //     movementId: string,
+    // ): Promise<IMovementDetailProductsView[]>;
+    create(entity: IStockMovementDto): Promise<CustomEndpointResponse>;
+    setQuantity(movDetailId: string, qty: number): Promise<IStockMovementDto>;
+    delete(movDetailId: string): Promise<boolean>;
 }
 
-export const stockEntryService: IStockEntryService = {
+export const stockEntryService: IStockMovementService = {
     async listProducts(movementId: string) {
         const result = await pbClient.stockEntryProductsView.getFullList({
             filter: `movementId='${movementId}'`,
         });
 
-        const view: IStockEntryProductView[] = [];
+        const views: IMovementDetailProductsView[] = [];
 
         for (const dto of result) {
-            const idx = view.findIndex((v) => v.productId === dto.productId);
+            const idx = views.findIndex((v) => v.productId === dto.productId);
 
             if (idx >= 0) {
-                view[idx].units.push({
-                    stockEntryId: dto.stockEntryId,
+                views[idx].units.push({
+                    movementDetailId: dto.stockEntryId,
                     quantity: dto.quantity,
                     productUnitId: dto.productUnitId,
                     colorName: dto.colorName,
@@ -63,15 +72,16 @@ export const stockEntryService: IStockEntryService = {
                     sizeAlias: dto.sizeAlias,
                 });
             } else {
-                view.push({
+                views.push({
                     movementId: dto.movementId,
+                    movementType: "IN",
                     productId: dto.productId,
                     name: dto.name,
                     cost: dto.cost,
                     price: dto.price,
                     units: [
                         {
-                            stockEntryId: dto.stockEntryId,
+                            movementDetailId: dto.stockEntryId,
                             quantity: dto.quantity,
                             productUnitId: dto.productUnitId,
                             colorName: dto.colorName,
@@ -83,25 +93,91 @@ export const stockEntryService: IStockEntryService = {
             }
         }
 
-        console.log(view);
+        console.log(views);
 
-        return view;
+        return views;
     },
-    create(entity: IStockEntryDto[]) {
+    create(entity: IStockMovementDto) {
         const promise = pbClient.callCustomEndpoint("movements", "createStockEntry", entity);
 
-        return executeService(promise);
+        return promise;
     },
-    setQuantity(stockEntryId, quantity) {
-        const promise = pbClient.stockEntries.update(stockEntryId, {
+    setQuantity(movDetailId, quantity) {
+        const promise = pbClient.stockEntries.update(movDetailId, {
             quantity: quantity,
         });
 
-        return executeService(promise);
+        /* we use the service from a mutation so we want it throw if it fails so it's 
+            handled by the mutation. executeService handles the error and wraps it in the response
+            object 
+        */
+        // return executeService(promise);
+        return promise;
     },
-    delete(stockEntryId) {
-        const promise = pbClient.stockEntries.delete(stockEntryId);
+    delete(movDetailId) {
+        const promise = pbClient.stockEntries.delete(movDetailId);
+        return promise;
+    },
+};
 
-        return executeService(promise);
+export const stockExitService: IStockMovementService = {
+    async listProducts(movementId) {
+        const result: IMovementDetailProductsDto[] =
+            await pbClient.stockExitProductsView.getFullList({
+                filter: `movementId = '${movementId}'`,
+            });
+
+        const views: IMovementDetailProductsView[] = [];
+
+        for (const dto of result) {
+            const idx = views.findIndex((x) => x.productId === dto.productId);
+            if (idx >= 0) {
+                views[idx].units.push({
+                    movementDetailId: dto.stockExitId,
+                    quantity: dto.quantity,
+                    productUnitId: dto.productUnitId,
+                    colorName: dto.colorName,
+                    colorHexcode: dto.colorHexcode,
+                    sizeAlias: dto.sizeAlias,
+                });
+            } else {
+                views.push({
+                    movementId: dto.movementId,
+                    movementType: "OUT",
+                    productId: dto.productId,
+                    name: dto.name,
+                    cost: dto.cost,
+                    price: dto.price,
+                    units: [
+                        {
+                            movementDetailId: dto.stockExitId,
+                            quantity: dto.quantity,
+                            productUnitId: dto.productUnitId,
+                            colorName: dto.colorName,
+                            colorHexcode: dto.colorHexcode,
+                            sizeAlias: dto.sizeAlias,
+                        },
+                    ],
+                });
+            }
+        }
+
+        return views;
+    },
+    create(entity: IStockMovementDto) {
+        const promise = pbClient.callCustomEndpoint("movements", "createStockMovement", entity);
+
+        return promise;
+    },
+    setQuantity(movDetailId, quantity) {
+        const promise = pbClient.stockExits.update(movDetailId, {
+            quantity: quantity,
+        });
+
+        return promise;
+    },
+    delete(movDetailId) {
+        const promise = pbClient.stockExits.delete(movDetailId);
+        return promise;
     },
 };
