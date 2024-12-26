@@ -1,6 +1,6 @@
 import { Column } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Filter, X } from "lucide-react";
+import { Filter } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,

@@ -1,4 +1,5 @@
 import { AppDataTable } from "@/components/AppDataTable";
+import AppLink from "@/components/AppLink";
 import { Button } from "@/components/ui/button";
 import { IProductView } from "@/models/products";
 import { ColumnDef } from "@tanstack/react-table";
@@ -26,11 +27,7 @@ const columns: ColumnDef<IProductView>[] = [
     {
         id: "actions",
         cell({ row }) {
-            return (
-                <Button asChild variant="secondary">
-                    <Link to={"/products/" + row.getValue("id")}>Ver</Link>
-                </Button>
-            );
+            return <AppLink label="Ver" route={"/products/" + row.getValue("id")} />;
         },
     },
 ];

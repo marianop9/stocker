@@ -1,5 +1,4 @@
 import AppFormEntry from "@/components/AppFormEntry";
-import { Input } from "@/components/ui/input";
 import { IMovementDto } from "@/models/movements";
 import { formatDate, getMovementState, getMovementType } from "@/lib/formatters";
 
@@ -16,7 +15,7 @@ function MovementOverview({ movement }: { movement: IMovementDto }) {
                 {formatDate(movement.date)}
             </AppFormEntry>
             <AppFormEntry label="Referencia" name="reference" readonly className="col-span-2">
-                <Input readOnly value={movement.reference} />
+                <p>{movement.reference}</p>
             </AppFormEntry>
         </div>
     );

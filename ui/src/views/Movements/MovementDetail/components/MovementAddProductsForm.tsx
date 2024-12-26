@@ -8,9 +8,10 @@ import { useProductUnitsListService } from "@/lib/hooks/useProductUnitsService";
 import { IMovementDto, IStockMovementDto } from "@/models/movements";
 import { IProductUnitView, IProductView } from "@/models/products";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMovementDetailContext } from "../movementDetailContext";
 import AppAlert from "@/components/AppAlert";
+import AppColorDisplay from "@/components/AppColorDisplay";
 
 interface MovementAddProductsFormProps {
     movement: IMovementDto;
@@ -74,65 +75,64 @@ export default function MovementAddProductsForm({
     }
 
     const columns: ColumnDef<IProductUnitView>[] = useMemo(
-        () => [
-            {
-                id: "select-col",
-                header: ({ table }) => (
-                    <Checkbox
-                        checked={
-                            table.getIsAllRowsSelected() ||
-                            (table.getIsSomeRowsSelected() && "indeterminate")
-                        }
-                        onCheckedChange={(checked) => table.toggleAllPageRowsSelected(!!checked)}
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={row.getIsSelected()}
-                        onCheckedChange={row.getToggleSelectedHandler()}
-                        disabled={
-                            selectedMovementProduct?.units.find(
-                                (x) => x.productUnitId === row.getValue("id"),
-                            ) !== undefined
-                        }
-                    />
-                ),
-            },
-            {
-                accessorKey: "id",
-            },
-            {
-                accessorKey: "colorName",
-                header: "Color",
-                cell: ({ row }) => (
-                    <div className="flex items-center gap-2">
-                        <span>{row.original.colorName}</span>
-                        <div
-                            className="h-4 w-4 rounded-sm border-primary border"
-                            style={{ backgroundColor: row.original.colorHexcode }}
-                        ></div>
-                    </div>
-                ),
-            },
-            {
-                id: "stockEntryQty",
-                header: "Cantidad",
-                cell: ({ row }) => (
-                    <span>
-                        {selectedMovementProduct?.units.find(
-                            (x) => x.productUnitId === row.getValue("id"),
-                        )?.quantity ?? "-"}
-                    </span>
-                ),
-                meta: {
-                    align: "right",
+        () =>
+            [
+                {
+                    id: "select-col",
+                    header: ({ table }) => (
+                        <Checkbox
+                            checked={
+                                table.getIsAllRowsSelected() ||
+                                (table.getIsSomeRowsSelected() && "indeterminate")
+                            }
+                            onCheckedChange={(checked) =>
+                                table.toggleAllPageRowsSelected(!!checked)
+                            }
+                        />
+                    ),
+                    cell: ({ row }) => (
+                        <Checkbox
+                            checked={row.getIsSelected()}
+                            onCheckedChange={row.getToggleSelectedHandler()}
+                            disabled={
+                                selectedMovementProduct?.units.find(
+                                    (x) => x.productUnitId === row.getValue("id"),
+                                ) !== undefined
+                            }
+                        />
+                    ),
                 },
-            },
-            {
-                accessorKey: "sizeAlias",
-                header: "Talle",
-            },
-        ],
+                {
+                    accessorKey: "id",
+                },
+                {
+                    accessorKey: "colorName",
+                    header: "Color",
+                    cell: ({ row }) => (
+                        <AppColorDisplay
+                            name={row.original.colorName}
+                            hexcode={row.original.colorHexcode}
+                        />
+                    ),
+                },
+                {
+                    accessorKey: "sizeAlias",
+                    header: "Talle",
+                },
+                {
+                    id: "stockEntryQty",
+                    header: "Cantidad",
+                    enableColumnFilter: false,
+                    cell: ({ row }) => (
+                        <span>
+                            {selectedMovementProduct?.units.find(
+                                (x) => x.productUnitId === row.getValue("id"),
+                            )?.quantity ?? "-"}
+                        </span>
+                    ),
+                    footer: () => <Button>Agregar variantes</Button>,
+                },
+            ] as ColumnDef<IProductUnitView>[],
         [productUnits, selectedMovementProduct],
     );
 
@@ -168,7 +168,6 @@ export default function MovementAddProductsForm({
                         />
                     </AppFormEntry>
                 </div>
-                <AppAlert variant="error" message={serverError} />
                 <AppDataTable
                     columns={columns}
                     data={productUnits}
@@ -177,6 +176,8 @@ export default function MovementAddProductsForm({
                     onRowSelectionChange={setSelectedRows}
                 />
                 <AppFormValidationMessage message={selectedRowsValidation} />
+                <AppAlert variant="error" message={serverError} />
+
                 <AppDialogFooter className="flex justify-end">
                     <Button onClick={handleSave}>Agregar</Button>
                 </AppDialogFooter>

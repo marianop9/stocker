@@ -1,5 +1,5 @@
 import AppBackNavButton from "@/components/AppBackNavButton";
-import { useFetcher, useLoaderData, useSubmit } from "react-router-dom";
+import { useLoaderData, useSubmit } from "react-router-dom";
 import { IMovementDto } from "@/models/movements";
 import MovementOverview from "../MovementOverview";
 import ProductSearch from "./components/ProductSearch";

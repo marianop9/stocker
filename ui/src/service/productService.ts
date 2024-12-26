@@ -6,11 +6,10 @@ import type {
     IProductUnitDto,
 } from "@/models/products";
 import { pbClient } from "./pocketbase";
-import type { ListResult } from "pocketbase";
 import { executeService, ServiceResponse } from "./serviceResponse";
 
 interface IProductSerivce {
-    list(): Promise<ListResult<IProductView>>;
+    list(): Promise<IProductView[]>;
     get(id: string): Promise<IProductView>;
     find(name: string): Promise<IProductView[]>;
     create(p: IProductCreateDto): Promise<ServiceResponse<IProductDto>>;
@@ -19,15 +18,22 @@ interface IProductSerivce {
 
 export const productService: IProductSerivce = {
     async list() {
-        return pbClient.productsView.getList();
+        return pbClient.productsView.getFullList();
     },
     async get(id: string) {
         return pbClient.productsView.getOne(id);
     },
     async find(name: string) {
-        return pbClient.productsView.getFullList(10, {
+        const promise = pbClient.productsView.getList(1, 10, {
             filter: `name ~ '${name}'`,
         });
+
+        const result = await executeService(promise);
+        if (!result.success) {
+            console.error("failed to find product: ", result.error.response);
+            return [];
+        }
+        return result.data.items;
     },
     async create(p: IProductCreateDto) {
         const resp = await executeService(pbClient.products.create(p));
@@ -53,11 +59,7 @@ export const productUnitService: IProductUnitService = {
         });
     },
     async createBatch(dtos) {
-        const promise = pbClient.callCustomEndpoint(
-            "productUnits",
-            "createBatch",
-            dtos,
-        );
+        const promise = pbClient.callCustomEndpoint("productUnits", "createBatch", dtos);
 
         return executeService(promise);
     },

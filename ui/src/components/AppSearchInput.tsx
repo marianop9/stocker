@@ -40,6 +40,7 @@ function AppSearchInput({ label, onSearchTermChange, children }: Props) {
                 style={{
                     width: "var(--radix-popover-trigger-width)",
                     maxHeight: "var(--radix-popover-content-available-height)",
+                    overflow: "scroll",
                 }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onFocusOutside={(e) => e.preventDefault()}

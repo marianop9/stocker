@@ -12,4 +12,6 @@ const (
 	CollectionMovements    = "movements"
 	CollectionStockEntries = "stock_entries"
 	CollectionStockExits   = "stock_exits"
+	CollectionCategories   = "categories"
+	CollectionColors       = "colors"
 )

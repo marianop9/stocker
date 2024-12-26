@@ -18,6 +18,7 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
@@ -71,7 +72,7 @@ export function AppDataTable<TData, TValue>({
 
     return (
         <div>
-            <div className="rounded-md border">
+            <div className="rounded-md border bg-secondary/25">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -121,18 +122,6 @@ export function AppDataTable<TData, TValue>({
                             </TableRow>
                         )}
                     </TableBody>
-                    {/* <TableFooter>
-                        {hasSelection && data.length > 0 && (
-                            <div className="flex-1 pl-2 py-2 text-xs text-muted-foreground">
-                                {
-                                    table.getFilteredSelectedRowModel().rows
-                                        .length
-                                }{" "}
-                                de {table.getFilteredRowModel().rows.length}{" "}
-                                fila(s) seleccionadas.
-                            </div>
-                        )}
-                    </TableFooter> */}
                 </Table>
             </div>
             {hasSelection && data.length > 0 && (

@@ -1,11 +1,7 @@
 import useAppRouterLoaderData from "@/lib/hooks/useAppRouterLoaderData";
 import { productUnitLoader } from "./productUnitLoader";
 import ProductForm from "../ProductForm";
-import {
-    AppDialog,
-    AppDialogTrigger,
-    AppDialogContent,
-} from "@/components/AppDialog";
+import { AppDialog, AppDialogTrigger, AppDialogContent } from "@/components/AppDialog";
 import { Button } from "@/components/ui/button";
 import { useParams, useRevalidator } from "react-router-dom";
 import { useState } from "react";
@@ -48,9 +44,7 @@ function ProductUnitView() {
             <div className="flex">
                 <div className="h-[250px] w-[200px] bg-gray-400 mr-4"></div>
                 <div>
-                    <h2 className="text-xl font-semibold mb-2">
-                        {product?.name}
-                    </h2>
+                    <h2 className="text-xl font-semibold mb-2">{product?.name}</h2>
                     <p>{product?.description}</p>
                     <div>
                         <span>
@@ -60,20 +54,14 @@ function ProductUnitView() {
                     <div>Costo: {currencyFmt.format(product.cost)}</div>
                     <div>Precio: {currencyFmt.format(product.price)}</div>
 
-                    <AppDialog
-                        open={productDialogOpen}
-                        onOpenChange={setProductDialogOpen}
-                    >
+                    <AppDialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
                         <AppDialogTrigger asChild>
                             <Button className="mt-4" variant="secondary">
                                 Modificar
                             </Button>
                         </AppDialogTrigger>
                         <AppDialogContent title="Modificar producto">
-                            <ProductForm
-                                product={product}
-                                afterSubmit={handleUpdatedProduct}
-                            />
+                            <ProductForm product={product} afterSubmit={handleUpdatedProduct} />
                         </AppDialogContent>
                     </AppDialog>
                 </div>
@@ -81,10 +69,7 @@ function ProductUnitView() {
 
             <div className="mt-4 flex flex-col gap-2">
                 <h2 className="text-xl font-semibold">Detalles</h2>
-                <AppDialog
-                    open={unitsDialogOpen}
-                    onOpenChange={(x) => setUnitsDialogOpen(x)}
-                >
+                <AppDialog open={unitsDialogOpen} onOpenChange={(x) => setUnitsDialogOpen(x)}>
                     <AppDialogTrigger asChild>
                         <div>
                             <Button>Agregar detalles</Button>
@@ -98,10 +83,7 @@ function ProductUnitView() {
                         />
                     </AppDialogContent>
                 </AppDialog>
-                <AppDataTable
-                    columns={productDetailsColumns}
-                    data={details ?? []}
-                />
+                <AppDataTable columns={productDetailsColumns} data={details ?? []} />
             </div>
         </>
     );
@@ -123,6 +105,7 @@ const productDetailsColumns: ColumnDef<IProductUnitView>[] = [
     {
         header: "Cantidad",
         accessorKey: "quantity",
+        enableColumnFilter: false,
     },
 ];
 

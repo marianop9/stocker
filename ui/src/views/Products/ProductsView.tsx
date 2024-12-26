@@ -1,23 +1,19 @@
 import ProductsDataTable from "./ProductsDataTable";
-import { IProductDto, IProductView } from "@/models/products";
+import { IProductDto } from "@/models/products";
 import { Button } from "@/components/ui/button";
-import { useLoaderData, useNavigate } from "react-router-dom";
-import {
-    AppDialog,
-    AppDialogContent,
-    AppDialogTrigger,
-} from "@/components/AppDialog";
-import { ListResult } from "pocketbase";
-import { ICategory } from "@/models/administrations";
+import { useNavigate } from "react-router-dom";
+import { AppDialog, AppDialogContent, AppDialogTrigger } from "@/components/AppDialog";
 import ProductForm from "./ProductForm";
+import useAppRouterLoaderData from "@/lib/hooks/useAppRouterLoaderData";
+import { productsLoader } from "./productsLoader";
 
 function ProductsView() {
     const navigate = useNavigate();
 
-    const { products } = useLoaderData() as {
-        products: ListResult<IProductView>;
-        categories: ListResult<ICategory>;
-    };
+    const { products } = useAppRouterLoaderData(productsLoader);
+    // const { products } = useLoaderData() as {
+    //     products: IProductView[];
+    // };
 
     const handleCreatedProduct = (p: IProductDto) => {
         // navigate to detail once created
@@ -26,7 +22,7 @@ function ProductsView() {
 
     return (
         <div className="p-8">
-            <ProductsDataTable products={products?.items ?? []} />
+            <ProductsDataTable products={products} />
 
             <AppDialog>
                 <AppDialogTrigger asChild>
