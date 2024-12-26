@@ -93,29 +93,31 @@ var handleCloseMovement stocker.StockerHandlerBuilder = func(app *stocker.Stocke
 	}
 }
 
-func applyMovement(app *stocker.StockerApp, record *core.Record) error {
-	if deleted := record.GetString("deleted"); deleted != "" {
+func applyMovement(app *stocker.StockerApp, movementRecord *core.Record) error {
+	if deleted := movementRecord.GetString("deleted"); deleted != "" {
 		return errors.New(ErrIsDeleted)
 	}
 
-	movState := record.GetString("state")
+	movState := movementRecord.GetString("state")
 
 	if movState != MovementStateOpen {
 		return errors.New(ErrStateNotOpen)
 	}
 
-	movType := record.GetString("type")
+	movType := movementRecord.GetString("type")
 
 	var childCollectionName string
 	switch movType {
 	case MovementTypeIn:
 		childCollectionName = stocker.CollectionStockEntries
+	case MovementTypeOut:
+		childCollectionName = stocker.CollectionStockExits
 	default:
 		return errors.New(ErrTypeNotSupported)
 	}
 
 	// stock entries/exits
-	childRecords, err := app.PbApp.FindAllRecords(childCollectionName, dbx.HashExp{"movementId": record.Id})
+	childRecords, err := app.PbApp.FindAllRecords(childCollectionName, dbx.HashExp{"movementId": movementRecord.Id})
 	if err != nil {
 		return err
 	}
@@ -128,10 +130,12 @@ func applyMovement(app *stocker.StockerApp, record *core.Record) error {
 				return err
 			}
 
-			if movType == MovementTypeIn {
+			// movement types already checked in previous switch
+			switch movType {
+			case MovementTypeIn:
 				productUnit.Set("quantity+", child.GetInt("quantity"))
-			} else {
-				return errors.New("MovTypeOut not implemented")
+			case MovementTypeOut:
+				productUnit.Set("quantity-", child.GetInt("quantity"))
 			}
 
 			if err := txApp.Save(productUnit); err != nil {
@@ -140,8 +144,8 @@ func applyMovement(app *stocker.StockerApp, record *core.Record) error {
 		}
 
 		// close movement
-		record.Set("state", MovementStateClosed)
-		if err = txApp.Save(record); err != nil {
+		movementRecord.Set("state", MovementStateClosed)
+		if err = txApp.Save(movementRecord); err != nil {
 			return err
 		}
 
@@ -222,10 +226,13 @@ func annullMovement(app *stocker.StockerApp, record *core.Record) error {
 				return err
 			}
 
-			if movType == MovementTypeIn {
+			switch movType {
+			case MovementTypeIn:
 				productUnit.Set("quantity-", child.GetInt("quantity"))
-			} else {
-				return errors.New("MovTypeOut not implemented")
+			case MovementTypeOut:
+				productUnit.Set("quantity+", child.GetInt("quantity"))
+			default:
+				return errors.New("Movement annulation not implemented for type " + movType)
 			}
 
 			if err := txApp.Save(productUnit); err != nil {

@@ -1,15 +1,19 @@
 import AppConfirm from "@/components/AppConfirm";
-import { IMovementDetailProductsView, IMovementDto } from "@/models/movements";
+import { IMovementDto } from "@/models/movements";
 import { useMovementDetailContext } from "../movementDetailContext";
 
-export default function MovementCloseConfirm({ movement }: { movement: IMovementDto }) {
+export default function MovementCloseConfirm({
+    movement,
+    onConfirm,
+}: {
+    movement: IMovementDto;
+    onConfirm: () => void;
+}) {
     const { movementProducts } = useMovementDetailContext();
-
-    function closeMovement() {}
 
     return (
         <AppConfirm
-            onConfirm={closeMovement}
+            onConfirm={onConfirm}
             title="Cerrar movimiento"
             triggerLabel="Cerrar movimiento"
             triggerDisabled={movement.state !== "OPEN" || movementProducts.length === 0}

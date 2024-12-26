@@ -10,7 +10,6 @@ import { IMovementDetailProductsView, IMovementDto } from "@/models/movements";
 import { Button } from "@/components/ui/button";
 import { FormEvent, useState } from "react";
 import { AppDialog, AppDialogContent, AppDialogTrigger } from "@/components/AppDialog";
-import { stockEntryService } from "@/service/movementService";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/formatters";
 import AppColorDisplay from "@/components/AppColorDisplay";
@@ -20,6 +19,7 @@ import AppConfirm from "@/components/AppConfirm";
 interface StockEntryProductDetailsProps {
     movement: IMovementDto;
 }
+
 export default function MovementProductDetails({ movement }: StockEntryProductDetailsProps) {
     const isStockEntry = movement.type === "IN";
 
@@ -55,8 +55,8 @@ export default function MovementProductDetails({ movement }: StockEntryProductDe
                                 {movProduct.name}
                                 <Badge variant="secondary">
                                     {movProduct.units.length > 1
-                                        ? `${movProduct.units.length} unidades`
-                                        : "1 unidad"}
+                                        ? `${movProduct.units.length} variantes`
+                                        : "1 variante"}
                                 </Badge>
                             </span>
                         </AccordionTrigger>

@@ -97,6 +97,7 @@ export function MovementDetailContextProvider({
         onSuccess(_data, variables) {
             // retrieve deleted id
             const { productId, movementDetailId } = variables;
+            // manually update query data
             queryClient.setQueryData(queryKey, (prev: IMovementDetailProductsView[]) =>
                 prev.map((p) => {
                     if (p.productId === productId) {

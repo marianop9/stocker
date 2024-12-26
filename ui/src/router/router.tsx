@@ -14,6 +14,7 @@ import { movementFormActions } from "@/views/Movements/movementFormActions";
 import { movementsLoader } from "@/views/Movements/movementsLoader";
 import MovementDetailView from "@/views/Movements/MovementDetail/MovementDetailView";
 import movementDetailViewLoader from "@/views/Movements/MovementDetail/movementDetailViewLoader";
+import { movementDetailViewActions } from "@/views/Movements/MovementDetail/movementDetailViewActions";
 
 const router = createBrowserRouter([
     {
@@ -53,16 +54,10 @@ const router = createBrowserRouter([
                         action: movementFormActions,
                         loader: movementsLoader,
                     },
-                    // {
-                    //     path: "movements/:id",
-                    //     element: <StockEntryView />,
-                    //     action: stockEntryViewActions,
-                    //     loader: stockEntryViewLoader,
-                    // },
                     {
                         path: "movements/:id",
                         element: <MovementDetailView />,
-                        // action: ,
+                        action: movementDetailViewActions,
                         loader: movementDetailViewLoader,
                     },
                 ],

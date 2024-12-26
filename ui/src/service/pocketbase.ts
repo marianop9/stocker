@@ -7,7 +7,7 @@ import {
 } from "@/models/movements";
 import type { IProductUnitView, IProductDto, IProductView } from "@/models/products";
 import IUser from "@/models/user";
-import Client, { ClientResponseError, RecordService } from "pocketbase";
+import Client, { RecordService } from "pocketbase";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 

@@ -1,5 +1,5 @@
 import AppBackNavButton from "@/components/AppBackNavButton";
-import { useLoaderData } from "react-router-dom";
+import { useFetcher, useLoaderData, useSubmit } from "react-router-dom";
 import { IMovementDto } from "@/models/movements";
 import MovementOverview from "../MovementOverview";
 import ProductSearch from "./components/ProductSearch";
@@ -7,7 +7,6 @@ import { MovementDetailContextProvider } from "./movementDetailContext";
 import MovementCloseConfirm from "./components/MovementCloseConfirm";
 import MovementProductDetails from "./components/MovementProductDetails";
 import { AppControlledDialogWrapper } from "@/components/AppDialogWrapper";
-import StockEntryAddProductsForm from "../StockEntry/StockEntryAddProductsForm";
 import { IProductView } from "@/models/products";
 import { useState } from "react";
 import MovementAddProductsForm from "./components/MovementAddProductsForm";
@@ -18,8 +17,9 @@ export default function MovementDetailView() {
     const [isAddProductsDialogOpen, setIsAddProductsDialogOpen] = useState(false);
     const [selecetedProduct, setSelectedProduct] = useState<IProductView | null>(null);
 
+    const submit = useSubmit();
     async function closeMovement() {
-        // fetcher.submit(null, { method: "POST" });
+        submit(null, { method: "POST" });
     }
 
     function handleProductAdded() {
@@ -39,7 +39,7 @@ export default function MovementDetailView() {
                     <div className="flex-grow">
                         <div className="flex flex-col h-full gap-2 items-end">
                             {/* <Button>asd</Button> */}
-                            <MovementCloseConfirm movement={movement} />
+                            <MovementCloseConfirm movement={movement} onConfirm={closeMovement} />
                         </div>
                     </div>
                 </div>
@@ -66,9 +66,6 @@ export default function MovementDetailView() {
                     <MovementAddProductsForm
                         movement={movement}
                         product={selecetedProduct}
-                        // stockEntryProduct={
-                        //     stockEntryProducts.find((x) => x.productId === selecetedProduct?.id) ?? null
-                        // }
                         onProductAdded={handleProductAdded}
                     />
                 </AppControlledDialogWrapper>

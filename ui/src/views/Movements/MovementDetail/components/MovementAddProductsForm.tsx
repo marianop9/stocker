@@ -5,16 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useProductUnitsListService } from "@/lib/hooks/useProductUnitsService";
-import {
-    IMovementDto,
-    IStockEntryDto,
-    IStockEntryProductView,
-    IStockMovementDto,
-} from "@/models/movements";
+import { IMovementDto, IStockMovementDto } from "@/models/movements";
 import { IProductUnitView, IProductView } from "@/models/products";
-import { stockEntryService } from "@/service/movementService";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMovementDetailContext } from "../movementDetailContext";
 import AppAlert from "@/components/AppAlert";
 
@@ -69,10 +63,10 @@ export default function MovementAddProductsForm({
         };
 
         createStockMovementMutation.mutate(stockMovements, {
-            onSuccess(data, variables, context) {
+            onSuccess() {
                 onProductAdded();
             },
-            onError(error, variables, context) {
+            onError(error) {
                 console.log(error.response);
                 setServerError(error.response.message);
             },

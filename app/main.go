@@ -10,6 +10,7 @@ import (
 	"github.com/marianop9/stocker/app/stocker/movements"
 	"github.com/marianop9/stocker/app/stocker/products"
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 )
 
@@ -28,6 +29,8 @@ func main() {
 	stocker := stocker.NewStockerApp(app)
 	products.RegisterProductUnitsHandlers(stocker)
 	movements.RegisterMovementsHandlers(stocker)
+
+	stocker.AddCustomHandler("error", "", "GET", func(e *core.RequestEvent) error { return e.InternalServerError("error endpoint response", nil) })
 
 	stocker.RegisterCustomHandlers()
 
