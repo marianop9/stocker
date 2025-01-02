@@ -1,9 +1,5 @@
 import { AppDataTable } from "@/components/AppDataTable";
-import {
-    AppDialog,
-    AppDialogContent,
-    AppDialogTrigger,
-} from "@/components/AppDialog";
+import { AppDialog, AppDialogContent, AppDialogTrigger } from "@/components/AppDialog";
 import { Button } from "@/components/ui/button";
 import { useColors } from "@/lib/hooks/useAdministrations";
 import { IColor } from "@/models/administrations";
@@ -21,9 +17,7 @@ function ColorsTab() {
 
     function handleCreateUpdateSuccess(cat: IColor, wasUpdate: boolean) {
         queryClient.setQueryData(queryKey, (oldData: IColor[]) =>
-            wasUpdate
-                ? oldData.map((old) => (old.id === cat.id ? cat : old))
-                : [...oldData, cat],
+            wasUpdate ? oldData.map((old) => (old.id === cat.id ? cat : old)) : [...oldData, cat],
         );
         setIsDialogOpen(false);
     }
@@ -42,6 +36,7 @@ function ColorsTab() {
         {
             accessorKey: "hexcode",
             header: "Color (HEX)",
+            enableColumnFilter: false,
         },
         {
             accessorKey: "code",
@@ -75,10 +70,7 @@ function ColorsTab() {
         <>
             <div className="mb-5 flex items-center bg-gray-100 p-4 rounded-md">
                 <div className="ml-auto">
-                    <AppDialog
-                        open={isDialogOpen}
-                        onOpenChange={handleDialogOpenChange}
-                    >
+                    <AppDialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
                         <AppDialogTrigger asChild>
                             <Button>Agregar</Button>
                         </AppDialogTrigger>

@@ -8,6 +8,7 @@ export interface IProductView {
     providerName: string;
     cost: number;
     price: number;
+    sku: string;
 }
 
 export interface IProductDto {

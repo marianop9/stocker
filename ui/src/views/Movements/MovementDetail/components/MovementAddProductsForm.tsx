@@ -168,7 +168,11 @@ export default function MovementAddProductsForm({
                         />
                     </AppFormEntry>
                 </div>
-                <AppAlert variant="error" message={serverError} />
+                {serverError && (
+                    <AppAlert variant="error" title="Ocurrió un error">
+                        <p>{serverError}</p>
+                    </AppAlert>
+                )}
                 <AppDataTable
                     columns={columns}
                     data={productUnits}

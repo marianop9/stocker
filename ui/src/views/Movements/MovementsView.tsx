@@ -78,6 +78,7 @@ function useMovementColumns(onDelete: (id: string) => void) {
                                 type="submit"
                                 variant="link"
                                 onClick={() => onDelete(row.getValue("id"))}
+                                className="h-4"
                             >
                                 {isOpen ? "Eliminar" : "Anular"}
                             </Button>

@@ -20,12 +20,8 @@ export const ProductFormSchema = z.object({
         .min(3, minLength(3))
         .max(50, maxLength(50)),
     description: z.string().max(150, maxLength(150)).optional().default(""),
-    categoryId: z
-        .string({ required_error: required("categoria") })
-        .min(1, required("categoria")),
-    providerId: z
-        .string({ required_error: required("proveedor") })
-        .min(1, required("proveedor")),
+    categoryId: z.string({ required_error: required("categoria") }).min(1, required("categoria")),
+    providerId: z.string({ required_error: required("proveedor") }).min(1, required("proveedor")),
     cost: z
         .number({
             required_error: required("costo"),
@@ -40,4 +36,5 @@ export const ProductFormSchema = z.object({
         })
         .positive(moreThan(0))
         .max(999999, lessThan(999999)),
+    sku: z.string(),
 });
