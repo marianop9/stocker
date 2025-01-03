@@ -3,16 +3,23 @@ import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 
 function PrivateRoute() {
-    const { authData } = useAppAuth();
+    const { userData, authRefresh } = useAppAuth();
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!authData.isAuth) {
+        if (!userData.isValid) {
             console.log("not authenticated, redirecting to login");
             navigate("/login");
+        } else {
+            authRefresh().then((refreshed) => {
+                if (!refreshed) {
+                    console.log("auth expired, redirecting to login");
+                    navigate("/login");
+                }
+            });
         }
-    }, [authData, navigate]);
+    }, [userData, authRefresh, navigate]);
 
     return <Outlet />;
 }

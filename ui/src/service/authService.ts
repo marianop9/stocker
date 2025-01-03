@@ -1,18 +1,25 @@
-import { RecordAuthResponse } from "pocketbase"
-import { pbClient } from "./pocketbase"
-import IUser from "@/models/user"
-import { executeService, ServiceResponse } from "./serviceResponse"
+import { RecordAuthResponse } from "pocketbase";
+import { pbClient } from "./pocketbase";
+import IUser from "@/models/user";
+import { executeService, ServiceResponse } from "./serviceResponse";
 
 interface IAuthService {
-    auth(userOrEmail: string, password: string): Promise<ServiceResponse<RecordAuthResponse<IUser>>>
-    logout(): void
+    auth(
+        userOrEmail: string,
+        password: string,
+    ): Promise<ServiceResponse<RecordAuthResponse<IUser>>>;
+    refresh(): Promise<ServiceResponse<RecordAuthResponse<IUser>>>;
+    logout(): void;
 }
 
 export const authService: IAuthService = {
     async auth(userOrEmail, password) {
-        return await executeService(pbClient.users.authWithPassword(userOrEmail, password))
+        return await executeService(pbClient.users.authWithPassword(userOrEmail, password));
+    },
+    async refresh() {
+        return await executeService(pbClient.users.authRefresh());
     },
     logout() {
-        pbClient.logout()
-    }
-}
+        pbClient.logout();
+    },
+};

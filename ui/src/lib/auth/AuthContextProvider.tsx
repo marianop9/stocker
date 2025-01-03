@@ -1,25 +1,25 @@
 import { PropsWithChildren } from "react";
-import { AppAuthData, AppAuthResult, authContext } from "./authContext";
+import { AppAuthResult, authContext } from "./authContext";
 import { authService } from "@/service/authService";
-import useLocalStorage from "../hooks/useLocalStorage";
+import { pbClient } from "@/service/pocketbase";
+import IUser from "@/models/user";
 
-const appAuthKey = "app_auth";
+// const appAuthKey = "app_auth";
 
 const AppAuthProvider = ({ children }: PropsWithChildren) => {
-    const {
-        storedValue: authData,
-        setValue: setAuthData,
-        clearValue: clearAuthData,
-    } = useLocalStorage<AppAuthData>(appAuthKey, {
-        isAuth: false,
-        token: "",
-        user: null,
-    });
+    // const {
+    //     storedValue: authData,
+    //     setValue: setAuthData,
+    //     clearValue: clearAuthData,
+    // } = useLocalStorage<AppAuthData>(appAuthKey, {
+    //     isAuth: false,
+    //     token: "",
+    //     user: null,
+    // });
 
-    async function login(
-        userOrEmail: string,
-        password: string,
-    ): Promise<AppAuthResult> {
+    // const userData = pbClient.getInternalClient().authStore.model as IUser | null;
+
+    async function login(userOrEmail: string, password: string): Promise<AppAuthResult> {
         const result = await authService.auth(userOrEmail, password);
 
         if (!result.success) {
@@ -29,11 +29,11 @@ const AppAuthProvider = ({ children }: PropsWithChildren) => {
             };
         }
 
-        setAuthData({
-            user: result.data.record,
-            token: result.data.token,
-            isAuth: true,
-        });
+        // setAuthData({
+        //     user: result.data.record,
+        //     token: result.data.token,
+        //     isAuth: true,
+        // });
 
         return {
             success: true,
@@ -43,11 +43,35 @@ const AppAuthProvider = ({ children }: PropsWithChildren) => {
 
     function logout() {
         authService.logout();
-        clearAuthData();
+        // clearAuthData();
+    }
+
+    async function authRefresh() {
+        const result = await authService.refresh();
+
+        if (!result.success) {
+            /* request may have been auto-cancelled (due to react strict mode running useEffect twice)
+            in this case, an auto-cancel does not mean the user is not auth, the next call will execute and
+            determine the result.
+            */
+            // isAbort indicates the request was auto-cancelled
+            console.log("refreshed failed, was cancelled:", result.error.isAbort);
+
+            return result.error.isAbort;
+        }
+
+        return true;
     }
 
     return (
-        <authContext.Provider value={{ authData, login, logout }}>
+        <authContext.Provider
+            value={{
+                userData: pbClient.getInternalClient().authStore,
+                login,
+                logout,
+                authRefresh,
+            }}
+        >
             {children}
         </authContext.Provider>
     );
