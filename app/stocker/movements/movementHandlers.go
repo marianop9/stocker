@@ -11,11 +11,23 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+var ErrTypeUnknown = errors.New("unknown movement type")
+
 const (
-	ErrTypeNotSupported = "movement type not supported"
+	ErrTypeNotSupported = "movement type not known/supported"
 	ErrStateNotOpen     = "movement is not open"
 	ErrIsDeleted        = "movement is deleted"
 )
+
+type StockMovementDto struct {
+	Id         string `json:"id"`
+	MovementId string `json:"movementId"`
+	IsReturn   bool   `json:"isReturn"`
+	Units      []struct {
+		ProductUnitId string `json:"productUnitId"`
+		Quantity      int    `json:"quantity"`
+	} `json:"units"`
+}
 
 var handleCreateStockMovement stocker.StockerHandlerBuilder = func(app *stocker.StockerApp) stocker.PbHandlerFunc {
 	return func(e *core.RequestEvent) error {
@@ -31,15 +43,22 @@ var handleCreateStockMovement stocker.StockerHandlerBuilder = func(app *stocker.
 		movementType := movement.GetString("type")
 
 		var movementTypeCollection string
-		if movementType == MovementTypeIn {
+		switch movementType {
+		case MovementTypeIn:
 			movementTypeCollection = stocker.CollectionStockEntries
-		} else if movementType == MovementTypeOut {
+		case MovementTypeOut:
 			movementTypeCollection = stocker.CollectionStockExits
+		case MovementTypeExchange:
+			if reqBody.IsReturn {
+				movementTypeCollection = stocker.CollectionStockEntries
+			} else {
+				movementTypeCollection = stocker.CollectionStockExits
+			}
 		}
 
 		collection, err := app.PbApp.FindCollectionByNameOrId(movementTypeCollection)
 		if err != nil {
-			return e.JSON(http.StatusBadRequest, utils.NewErrorResponse(err))
+			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(err))
 		}
 
 		err = app.PbApp.RunInTransaction(func(txApp core.App) error {
@@ -106,37 +125,65 @@ func applyMovement(app *stocker.StockerApp, movementRecord *core.Record) error {
 
 	movType := movementRecord.GetString("type")
 
-	var childCollectionName string
+	var entries, exits []*core.Record
+	var queryErr error
+
 	switch movType {
 	case MovementTypeIn:
-		childCollectionName = stocker.CollectionStockEntries
+		if entries, queryErr = app.PbApp.FindAllRecords(
+			stocker.CollectionStockEntries,
+			dbx.HashExp{"movementId": movementRecord.Id},
+		); queryErr != nil {
+			return queryErr
+		}
 	case MovementTypeOut:
-		childCollectionName = stocker.CollectionStockExits
-	default:
-		return errors.New(ErrTypeNotSupported)
+		if exits, queryErr = app.PbApp.FindAllRecords(
+			stocker.CollectionStockExits,
+			dbx.HashExp{"movementId": movementRecord.Id},
+		); queryErr != nil {
+			return queryErr
+		}
+	case MovementTypeExchange:
+		if entries, queryErr = app.PbApp.FindAllRecords(
+			stocker.CollectionStockEntries,
+			dbx.HashExp{"movementId": movementRecord.Id},
+		); queryErr != nil {
+			return queryErr
+		}
+		if exits, queryErr = app.PbApp.FindAllRecords(
+			stocker.CollectionStockExits,
+			dbx.HashExp{"movementId": movementRecord.Id},
+		); queryErr != nil {
+			return queryErr
+		}
 	}
 
-	// stock entries/exits
-	childRecords, err := app.PbApp.FindAllRecords(childCollectionName, dbx.HashExp{"movementId": movementRecord.Id})
-	if err != nil {
+	if err := validateMovementClose(movType, entries, exits); err != nil {
 		return err
 	}
 
-	err = app.PbApp.RunInTransaction(func(txApp core.App) error {
+	err := app.PbApp.RunInTransaction(func(txApp core.App) error {
 		// each child holds the quantity to add/subtract for a single product_unit
-		for _, child := range childRecords {
-			productUnit, err := txApp.FindRecordById(stocker.CollectionProductUnits, child.GetString("productUnitId"))
+		for _, entry := range entries {
+			productUnit, err := txApp.FindRecordById(stocker.CollectionProductUnits, entry.GetString("productUnitId"))
 			if err != nil {
 				return err
 			}
 
-			// movement types already checked in previous switch
-			switch movType {
-			case MovementTypeIn:
-				productUnit.Set("quantity+", child.GetInt("quantity"))
-			case MovementTypeOut:
-				productUnit.Set("quantity-", child.GetInt("quantity"))
+			productUnit.Set("quantity+", entry.GetInt("quantity"))
+
+			if err := txApp.Save(productUnit); err != nil {
+				return err
 			}
+		}
+
+		for _, exit := range exits {
+			productUnit, err := txApp.FindRecordById(stocker.CollectionProductUnits, exit.GetString("productUnitId"))
+			if err != nil {
+				return err
+			}
+
+			productUnit.Set("quantity-", exit.GetInt("quantity"))
 
 			if err := txApp.Save(productUnit); err != nil {
 				return err
@@ -145,11 +192,7 @@ func applyMovement(app *stocker.StockerApp, movementRecord *core.Record) error {
 
 		// close movement
 		movementRecord.Set("state", MovementStateClosed)
-		if err = txApp.Save(movementRecord); err != nil {
-			return err
-		}
-
-		return nil
+		return txApp.Save(movementRecord)
 	})
 
 	return err

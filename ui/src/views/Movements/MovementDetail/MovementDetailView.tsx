@@ -12,6 +12,7 @@ import { useState } from "react";
 import MovementAddProductsForm from "./components/MovementAddProductsForm";
 import { CustomEndpointResponse } from "@/service/pocketbase";
 import AppAlert from "@/components/AppAlert";
+import { Button } from "@/components/ui/button";
 
 export default function MovementDetailView() {
     const movement = useLoaderData() as IMovementDto;
@@ -54,7 +55,7 @@ export default function MovementDetailView() {
                     </div>
                     <div className="flex-grow">
                         <div className="flex flex-col h-full gap-2 items-end">
-                            {/* <Button>asd</Button> */}
+                            <Button onClick={() => alert("todo!")}>Eliminar movimiento</Button>
                             <MovementCloseConfirm movement={movement} onConfirm={closeMovement} />
                         </div>
                     </div>

@@ -1,13 +1,17 @@
 import { IMovementDetailProductsView, IStockMovementDto, MovementType } from "@/models/movements";
 import { stockEntryService, stockExitService } from "@/service/movementService";
 import { CustomEndpointResponse } from "@/service/pocketbase";
-import { ServiceResponse } from "@/service/serviceResponse";
 import { useMutation, UseMutationResult, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ClientResponseError } from "pocketbase";
 import { createContext, ReactNode, useContext } from "react";
 
+export type MovementProductsType = {
+    entries: IMovementDetailProductsView[];
+    exits: IMovementDetailProductsView[];
+};
+
 type MovementDetailContextType = {
-    movementProducts: IMovementDetailProductsView[];
+    movementProducts: MovementProductsType;
     createStockMovementMutation: UseMutationResult<
         CustomEndpointResponse,
         ClientResponseError,
@@ -40,13 +44,28 @@ export function MovementDetailContextProvider({
 
     const isStockEntry = movementType === "IN";
 
-    const { data = [] } = useQuery({
+    const { data = { entries: [], exits: [] } } = useQuery<MovementProductsType>({
         queryKey,
         enabled: movementId !== "",
-        queryFn: () =>
-            movementType === "IN"
-                ? stockEntryService.listProducts(movementId)
-                : stockExitService.listProducts(movementId),
+        queryFn: async () => {
+            if (movementType === "IN") {
+                return {
+                    entries: await stockEntryService.listProducts(movementId),
+                    exits: [],
+                };
+            } else if (movementType === "OUT") {
+                return { entries: [], exits: await stockExitService.listProducts(movementId) };
+            } else if (movementType === "EXCHANGE") {
+                const entries = stockEntryService.listProducts(movementId);
+                const exits = stockExitService.listProducts(movementId);
+                return {
+                    entries: await entries,
+                    exits: await exits,
+                } satisfies MovementProductsType;
+            }
+
+            return { entries: [], exits: [] };
+        },
     });
 
     const queryClient = useQueryClient();

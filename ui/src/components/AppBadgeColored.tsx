@@ -30,7 +30,8 @@ const AppColorfulBadge: React.FC<ColorfulBadgeProps> = ({ index, label }) => {
 };
 
 export function AppMovementTypeBadge({ type }: { type: MovementType }) {
-    const i = type === "IN" ? 0 : 1;
+    const types = ["IN", "OUT", "EXCHANGE"];
+    const i = types.indexOf(type);
 
     return <AppColorfulBadge index={i} label={getMovementType(type)} />;
 }

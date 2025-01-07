@@ -28,6 +28,8 @@ function LoginView() {
         e.preventDefault();
 
         if (userData.isValid) {
+            console.log("data is valid");
+
             navigate("/");
             return;
         }
@@ -46,10 +48,12 @@ function LoginView() {
         const { user, password } = result.data;
         const authResponse = await login(user, password);
 
+        console.log("success", authResponse.success);
         if (!authResponse.success) {
             setAuthErrorMessage(authResponse.error);
             return;
         }
+        console.log("navigating");
 
         navigate("/");
     }

@@ -37,6 +37,7 @@ function useMovementColumns(onDelete: (id: string) => void) {
                 filterOpts: [
                     { label: "Entrada", value: "IN" },
                     { label: "Salida", value: "OUT" },
+                    { label: "Cambio", value: "EXCHANGE" },
                 ] as FilterOption[],
             },
         },

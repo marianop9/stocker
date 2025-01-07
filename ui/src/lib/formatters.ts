@@ -4,7 +4,16 @@ import { MovementState, MovementType } from "@/models/movements";
 
 dayjs.extend(utc);
 
-export const getMovementType = (t: MovementType) => (t === "IN" ? "Entrada" : "Salida");
+export const getMovementType = (t: MovementType) => {
+    switch (t) {
+        case "IN":
+            return "Entrada";
+        case "OUT":
+            return "Salida";
+        case "EXCHANGE":
+            return "Cambio";
+    }
+};
 
 export const getMovementState = (s: MovementState) => {
     if (s === "OPEN") {

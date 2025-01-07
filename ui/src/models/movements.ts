@@ -1,4 +1,4 @@
-export type MovementType = "IN" | "OUT";
+export type MovementType = "IN" | "OUT" | "EXCHANGE";
 export type MovementState = "OPEN" | "CLOSED" | "ANNULLED";
 
 export interface IMovementDto {
@@ -12,6 +12,7 @@ export interface IMovementDto {
 export interface IStockMovementDto {
     id: string;
     movementId: string;
+    isReturn?: boolean;
     units: {
         productUnitId: string;
         quantity: number;

@@ -11,11 +11,11 @@ import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { useMovementDetailContext } from "../movementDetailContext";
 import AppAlert from "@/components/AppAlert";
+import { Label } from "@/components/ui/label";
 
 interface MovementAddProductsFormProps {
     movement: IMovementDto;
     product: IProductView | null;
-    // stockEntryProduct: IStockEntryProductView | null;
     onProductAdded: () => void;
 }
 
@@ -24,6 +24,9 @@ export default function MovementAddProductsForm({
     product,
     onProductAdded,
 }: MovementAddProductsFormProps) {
+    const isExchange = movement.type === "EXCHANGE";
+
+    const [isReturn, setIsReturn] = useState(false);
     const [quantity, setQuantity] = useState("");
     const [quantityValidation, setQuantityValidation] = useState("");
 
@@ -35,7 +38,18 @@ export default function MovementAddProductsForm({
     const { data: productUnits = [] } = useProductUnitsListService(product?.id ?? "");
 
     const { movementProducts, createStockMovementMutation } = useMovementDetailContext();
-    const selectedMovementProduct = movementProducts.find((p) => p.productId === product?.id);
+    const selectedMovementProduct = useMemo(() => {
+        if (movement.type === "IN") {
+            return movementProducts.entries.find((p) => p.productId === product?.id);
+        } else if (movement.type === "OUT") {
+            return movementProducts.exits.find((p) => p.productId === product?.id);
+        } else {
+            return (
+                movementProducts.entries.find((p) => p.productId === product?.id) ??
+                movementProducts.exits.find((p) => p.productId === product?.id)
+            );
+        }
+    }, [movement.type, product, product?.id]);
 
     async function handleSave() {
         setQuantityValidation("");
@@ -56,6 +70,7 @@ export default function MovementAddProductsForm({
         const stockMovements: IStockMovementDto = {
             id: "",
             movementId: movement.id,
+            isReturn,
             units: selectedUnitIds.map((prodUnitId) => ({
                 productUnitId: prodUnitId,
                 quantity: qty,
@@ -151,16 +166,25 @@ export default function MovementAddProductsForm({
                         {product.categoryName} / {product.providerName}
                     </AppFormEntry>
                 </div>
-                <div className="flex justify-between">
+                <div className="grid grid-cols-4 gap-2">
                     <AppFormEntry label="Precio" name="price" className="w-1/3" readonly>
                         {product.price}
                     </AppFormEntry>
-                    <AppFormEntry
-                        label="Cantidad"
-                        name="qty"
-                        className="w-1/3"
-                        errors={quantityValidation}
-                    >
+
+                    <div className="flex items-center space-x-1 col-start-3">
+                        {isExchange && (
+                            <>
+                                <Checkbox
+                                    name="isReturn"
+                                    checked={isReturn}
+                                    onCheckedChange={(c) => setIsReturn(!!c)}
+                                />
+                                <Label htmlFor="isReturn">Es devolución</Label>
+                            </>
+                        )}
+                    </div>
+
+                    <AppFormEntry label="Cantidad" name="qty" errors={quantityValidation}>
                         <Input
                             type="number"
                             value={quantity}
@@ -169,7 +193,7 @@ export default function MovementAddProductsForm({
                     </AppFormEntry>
                 </div>
                 {serverError && (
-                    <AppAlert variant="error" title="Ocurrió un error">
+                    <AppAlert variant="error" title="Ocurrió un error" className="mb-2">
                         <p>{serverError}</p>
                     </AppAlert>
                 )}

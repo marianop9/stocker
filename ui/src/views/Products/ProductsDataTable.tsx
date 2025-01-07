@@ -24,6 +24,10 @@ const columns: ColumnDef<IProductView>[] = [
         header: "Proveedor",
     },
     {
+        accessorKey: "sku",
+        header: "SKU",
+    },
+    {
         id: "actions",
         cell({ row }) {
             return (
