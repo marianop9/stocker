@@ -1,15 +1,6 @@
 import { pbClient } from "./pocketbase";
-import type {
-    ICategory,
-    IColor,
-    IProvider,
-    ISize,
-} from "@/models/administrations";
-import {
-    executeService,
-    ServiceResponse,
-    ServiceSuccess,
-} from "./serviceResponse";
+import type { ICategory, IColor, IProvider, ISize } from "@/models/administrations";
+import { executeService, ServiceResponse } from "./serviceResponse";
 
 interface IAdministrationService<TEntity> {
     list(): Promise<TEntity[]>;

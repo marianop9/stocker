@@ -2,9 +2,6 @@ import { PropsWithChildren } from "react";
 import { AppAuthResult, authContext } from "./authContext";
 import { authService } from "@/service/authService";
 import { pbClient } from "@/service/pocketbase";
-import IUser from "@/models/user";
-
-// const appAuthKey = "app_auth";
 
 const AppAuthProvider = ({ children }: PropsWithChildren) => {
     // const {

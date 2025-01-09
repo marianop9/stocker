@@ -83,7 +83,7 @@ export function MovementDetailContextProvider({
             isStockEntry
                 ? stockEntryService.create(stockMovement)
                 : stockExitService.create(stockMovement),
-        onSuccess(data, variables, context) {
+        onSuccess(data, _variables, _context) {
             if (data.success) {
                 invalidateQuery();
             }

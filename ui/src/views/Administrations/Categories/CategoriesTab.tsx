@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useCategories } from "@/lib/hooks/useAdministrations";
 import { ICategory } from "@/models/administrations";
 import { useQueryClient } from "@tanstack/react-query";
-import { ColumnDef, ColumnFilter } from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import CategoriesForm from "./CategoriesForm";
-import GenericFilter from "../GenericFilter";
 
 function categoriesColumns(
     onEdit: (row: ICategory) => void,
