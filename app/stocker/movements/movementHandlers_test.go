@@ -92,22 +92,25 @@ func TestCreateStockEntry(t *testing.T) {
 		{
 			Name:    "create 2 stock entries",
 			Method:  http.MethodPost,
-			URL:     customEndpointBuilder(stocker.ModuleMovements, "createStockEntry"),
+			URL:     customEndpointBuilder(stocker.ModuleMovements, "createStockMovement"),
 			Headers: map[string]string{"Authorization": userToken},
-			Body: strings.NewReader(`[
+			Body: strings.NewReader(`
 				{
 					"movementId": "6cs1ka9bfk9r6x6",
-					"productUnitId": "6pvbfe4m894l680",
-					"quantity": 1
-				},
-				{
-					"movementId": "6cs1ka9bfk9r6x6",
-					"productUnitId": "74x42nz242t2jay",
-					"quantity": 1
-				}
-			]`),
+					"isReturn": false,
+					"units": [
+						{
+							"productUnitId": "6pvbfe4m894l680",
+							"quantity": 1
+						},
+						{
+							"productUnitId": "74x42nz242t2jay",
+							"quantity": 1
+						}
+					]
+				}`),
 			ExpectedStatus:  http.StatusOK,
-			ExpectedContent: []string{"\"len\":2"},
+			ExpectedContent: []string{`"success":true`},
 			TestAppFactory:  setupTestApp,
 			AfterTestFunc: func(t testing.TB, app *tests.TestApp, res *http.Response) {
 				count, err := app.CountRecords(stocker.CollectionStockEntries, dbx.HashExp{"movementId": "6cs1ka9bfk9r6x6"})
