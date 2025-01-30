@@ -2,20 +2,18 @@ import AppFormEntry from "@/components/AppFormEntry";
 import { Input } from "@/components/ui/input";
 import AppSelect from "@/components/AppSelect";
 import { useService } from "@/service/useService";
-import {
-    categoryService,
-    providerService,
-} from "@/service/administrationsService";
+import { categoryService, providerService } from "@/service/administrationsService";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { z, ZodFormattedError } from "zod";
 import { ProductFormSchema } from "./productSchemas";
-import { useState } from "react";
-import { productService } from "@/service/productService";
+import { useEffect, useRef, useState } from "react";
 import { IProductDto, IProductView } from "@/models/products";
 import { ServiceResponse } from "@/service/serviceResponse";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
+import { useFetcher } from "react-router-dom";
+import AppAlert from "@/components/AppAlert";
 
 type ProductFormSchemaType = z.infer<typeof ProductFormSchema>;
 
@@ -27,17 +25,40 @@ interface Props {
 function ProductForm({ product, afterSubmit }: Props) {
     const isUpdate = !!(product && product.id);
 
-    const { register, control, handleSubmit, getValues } =
-        useForm<ProductFormSchemaType>({
+    const fetcher = useFetcher();
+
+    const { register, control, handleSubmit, getValues, setValue } = useForm<ProductFormSchemaType>(
+        {
             defaultValues: product,
-        });
+        },
+    );
 
     const { data: categories } = useService(categoryService.list);
     const { data: providers } = useService(providerService.list);
 
     const [serverError, setServerError] = useState("");
-    const [errors, setErrors] =
-        useState<ZodFormattedError<ProductFormSchemaType> | null>(null);
+    const serverErrorRef = useRef<HTMLDivElement>(null);
+    const [errors, setErrors] = useState<ZodFormattedError<ProductFormSchemaType> | null>(null);
+
+    useEffect(() => {
+        if (!fetcher.data) {
+            return;
+        }
+
+        const data = fetcher.data as ServiceResponse<IProductDto>;
+
+        if (data.success) {
+            afterSubmit(data.data);
+        } else {
+            // unexpected server error (client side validations should catch invalid data)
+            setServerError(data.error.message);
+            console.error("server returned error:", data.error.response);
+        }
+    }, [fetcher.data, setServerError]);
+
+    useEffect(() => {
+        serverErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [serverError]);
 
     const [margin, setMargin] = useState(() => {
         if (!product || product.cost * product.price <= 0) {
@@ -70,9 +91,19 @@ function ProductForm({ product, afterSubmit }: Props) {
         }
     }
 
-    const submitHandler: SubmitHandler<ProductFormSchemaType> = async (
-        form,
-    ) => {
+    function buildSku(categoryId: string, providerId: string) {
+        if (!categoryId || !providerId) return;
+
+        const category = categories?.find((c) => c.id === categoryId);
+        const provider = providers?.find((c) => c.id === providerId);
+
+        if (category && provider) {
+            const sku = category?.code + provider?.code;
+            setValue("sku", sku);
+        }
+    }
+
+    const submitHandler: SubmitHandler<ProductFormSchemaType> = async (form) => {
         const { success, data, error } = ProductFormSchema.safeParse(form);
         if (!success) {
             const err = error.format();
@@ -81,12 +112,9 @@ function ProductForm({ product, afterSubmit }: Props) {
             return;
         }
 
-        // build sku
-        const category = categories?.find((c) => c.id === data.categoryId);
-        const provider = providers?.find((c) => c.id === data.providerId);
-
-        let sku = "";
-        if (category && provider) sku = category?.code + provider?.code;
+        const method = isUpdate ? "PUT" : "POST";
+        fetcher.submit(data, { action: "/products", method, encType: "multipart/form-data" });
+        /* use router fetcher to automatically revalidate data from loader
 
         let response: ServiceResponse<IProductDto>;
         if (isUpdate) {
@@ -103,22 +131,28 @@ function ProductForm({ product, afterSubmit }: Props) {
         }
 
         if (response.success) {
+            reset();
             afterSubmit(response.data);
         } else {
             // unexpected server error (client side validations should catch invalid data)
             setServerError(response.error.response.message);
             console.error("server returned error:", response.error.response);
-        }
+        } */
     };
 
     return (
         <form method="post" onSubmit={handleSubmit(submitHandler)}>
-            <div className="my-4 bg-red-300 text-red-500">{serverError}</div>
-            <AppFormEntry
-                label="Nombre"
-                name="name"
-                errors={errors?.name?._errors}
-            >
+            {serverError && (
+                <AppAlert
+                    variant="error"
+                    title="Ocurrió un error"
+                    className="mb-4"
+                    ref={serverErrorRef}
+                >
+                    <p>{serverError}</p>
+                </AppAlert>
+            )}
+            <AppFormEntry label="Nombre" name="name" errors={errors?.name?._errors}>
                 {/* <Input type="text" name="name" defaultValue={product?.name} /> */}
                 <Input type="text" {...register("name")} />
             </AppFormEntry>
@@ -135,11 +169,7 @@ function ProductForm({ product, afterSubmit }: Props) {
                 ></textarea> */}
                 <Textarea {...register("description")} />
             </AppFormEntry>
-            <AppFormEntry
-                label="Categoria"
-                name="categoryId"
-                errors={errors?.categoryId?._errors}
-            >
+            <AppFormEntry label="Categoria" name="categoryId" errors={errors?.categoryId?._errors}>
                 <Controller
                     control={control}
                     name="categoryId"
@@ -152,16 +182,15 @@ function ProductForm({ product, afterSubmit }: Props) {
                                 })) ?? []
                             }
                             {...field}
-                            onValueChange={onChange}
+                            onValueChange={(value) => {
+                                buildSku(value, getValues("providerId"));
+                                onChange(value);
+                            }}
                         />
                     )}
                 />
             </AppFormEntry>
-            <AppFormEntry
-                label="Proveedor"
-                name="providerId"
-                errors={errors?.providerId?._errors}
-            >
+            <AppFormEntry label="Proveedor" name="providerId" errors={errors?.providerId?._errors}>
                 <Controller
                     control={control}
                     name="providerId"
@@ -174,7 +203,10 @@ function ProductForm({ product, afterSubmit }: Props) {
                                 })) ?? []
                             }
                             {...field}
-                            onValueChange={onChange}
+                            onValueChange={(value) => {
+                                buildSku(getValues("categoryId"), value);
+                                onChange(value);
+                            }}
                         />
                     )}
                 />
@@ -189,10 +221,7 @@ function ProductForm({ product, afterSubmit }: Props) {
                     type="number"
                     {...register("cost", {
                         onChange(event) {
-                            updateMargin(
-                                event.target.value,
-                                getValues("price"),
-                            );
+                            updateMargin(event.target.value, getValues("price"));
                         },
                         valueAsNumber: true,
                     })}
@@ -200,19 +229,12 @@ function ProductForm({ product, afterSubmit }: Props) {
                 />
             </AppFormEntry>
             <div className="flex justify-between">
-                <AppFormEntry
-                    label="Precio"
-                    name="price"
-                    errors={errors?.price?._errors}
-                >
+                <AppFormEntry label="Precio" name="price" errors={errors?.price?._errors}>
                     <Input
                         type="number"
                         {...register("price", {
                             onChange(event) {
-                                updateMargin(
-                                    getValues("cost"),
-                                    event.target.value,
-                                );
+                                updateMargin(getValues("cost"), event.target.value);
                             },
                             valueAsNumber: true,
                         })}
@@ -221,6 +243,11 @@ function ProductForm({ product, afterSubmit }: Props) {
                 </AppFormEntry>
                 <AppFormEntry label="Margen" name="margin">
                     <Input name="margin" value={margin} disabled />
+                </AppFormEntry>
+            </div>
+            <div>
+                <AppFormEntry label="SKU" name="sku">
+                    <Input {...register("sku")} disabled />
                 </AppFormEntry>
             </div>
             <DialogFooter>

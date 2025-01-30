@@ -4,7 +4,7 @@ import AdmininstrationsView from "@/views/Administrations/AdministrationsView";
 import HomeView from "@/views/Home/HomeView";
 import ProductUnitView from "@/views/Products/Detail/ProductUnitView";
 import { productUnitLoader } from "@/views/Products/Detail/productUnitLoader";
-import { productCreateAction, productsLoader } from "@/views/Products/productsLoader";
+import { productSaveAction, productsLoader } from "@/views/Products/productsLoader";
 import ProductsView from "@/views/Products/ProductsView";
 import { createBrowserRouter } from "react-router-dom";
 import PrivateRoute from "@/components/PrivateRoute";
@@ -37,7 +37,7 @@ const router = createBrowserRouter([
                         path: "products",
                         element: <ProductsView />,
                         loader: productsLoader,
-                        action: productCreateAction,
+                        action: productSaveAction,
                     },
                     {
                         path: "products/:id",

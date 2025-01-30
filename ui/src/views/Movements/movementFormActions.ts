@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const MovementFormSchema = z.object({
     date: z.string().date(),
-    type: z.enum(["IN", "OUT"]),
+    type: z.enum(["IN", "OUT", "EXCHANGE"]),
     reference: z.string().max(200),
 });
 

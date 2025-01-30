@@ -1,5 +1,5 @@
 import AppBackNavButton from "@/components/AppBackNavButton";
-import { useLoaderData, useSubmit } from "react-router-dom";
+import { useActionData, useLoaderData, useSubmit } from "react-router-dom";
 import { IMovementDto } from "@/models/movements";
 import MovementOverview from "../MovementOverview";
 import ProductSearch from "./components/ProductSearch";
@@ -10,6 +10,9 @@ import { AppControlledDialogWrapper } from "@/components/AppDialogWrapper";
 import { IProductView } from "@/models/products";
 import { useState } from "react";
 import MovementAddProductsForm from "./components/MovementAddProductsForm";
+import { CustomEndpointResponse } from "@/service/pocketbase";
+import AppAlert from "@/components/AppAlert";
+import { Button } from "@/components/ui/button";
 
 export default function MovementDetailView() {
     const movement = useLoaderData() as IMovementDto;
@@ -21,6 +24,8 @@ export default function MovementDetailView() {
     async function closeMovement() {
         submit(null, { method: "POST" });
     }
+    const actionData = useActionData() as CustomEndpointResponse | undefined;
+    const closedSuccessfully = actionData && actionData.success;
 
     function handleProductAdded() {
         setIsAddProductsDialogOpen(false);
@@ -31,6 +36,18 @@ export default function MovementDetailView() {
             <div className="mb-4">
                 <AppBackNavButton />
             </div>
+            {actionData && (
+                <AppAlert
+                    variant={closedSuccessfully ? "success" : "error"}
+                    title={closedSuccessfully ? "Movimiento cerrado" : "Ocurrió un error"}
+                    className="mb-4"
+                >
+                    <p>
+                        {closedSuccessfully ? "Movimiento cerrado con éxito" : actionData.message}
+                    </p>
+                </AppAlert>
+            )}
+
             <MovementDetailContextProvider movementId={movement.id} movementType={movement.type}>
                 <div className="flex">
                     <div className="w-2/3">
@@ -38,7 +55,7 @@ export default function MovementDetailView() {
                     </div>
                     <div className="flex-grow">
                         <div className="flex flex-col h-full gap-2 items-end">
-                            {/* <Button>asd</Button> */}
+                            <Button onClick={() => alert("todo!")}>Eliminar movimiento</Button>
                             <MovementCloseConfirm movement={movement} onConfirm={closeMovement} />
                         </div>
                     </div>

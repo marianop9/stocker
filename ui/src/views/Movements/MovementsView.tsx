@@ -37,6 +37,7 @@ function useMovementColumns(onDelete: (id: string) => void) {
                 filterOpts: [
                     { label: "Entrada", value: "IN" },
                     { label: "Salida", value: "OUT" },
+                    { label: "Cambio", value: "EXCHANGE" },
                 ] as FilterOption[],
             },
         },
@@ -78,6 +79,7 @@ function useMovementColumns(onDelete: (id: string) => void) {
                                 type="submit"
                                 variant="link"
                                 onClick={() => onDelete(row.getValue("id"))}
+                                className="h-4"
                             >
                                 {isOpen ? "Eliminar" : "Anular"}
                             </Button>

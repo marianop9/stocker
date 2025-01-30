@@ -3,7 +3,6 @@ import AppLink from "@/components/AppLink";
 import { Button } from "@/components/ui/button";
 import { IProductView } from "@/models/products";
 import { ColumnDef } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
 
 const columns: ColumnDef<IProductView>[] = [
     {
@@ -25,9 +24,17 @@ const columns: ColumnDef<IProductView>[] = [
         header: "Proveedor",
     },
     {
+        accessorKey: "sku",
+        header: "SKU",
+    },
+    {
         id: "actions",
         cell({ row }) {
-            return <AppLink label="Ver" route={"/products/" + row.getValue("id")} />;
+            return (
+                <Button asChild variant="secondary">
+                    <AppLink route={"/products/" + row.getValue("id")} label="Ver" />
+                </Button>
+            );
         },
     },
 ];

@@ -98,7 +98,7 @@ export const stockEntryService: IStockMovementService = {
         return views;
     },
     create(entity: IStockMovementDto) {
-        const promise = pbClient.callCustomEndpoint("movements", "createStockEntry", entity);
+        const promise = pbClient.callCustomEndpoint("movements", "createStockMovement", entity);
 
         return promise;
     },

@@ -1,10 +1,5 @@
 import { productService } from "@/service/productService";
-import {
-    ActionFunction,
-    redirect,
-    type LoaderFunction,
-} from "react-router-dom";
-import { ProductFormSchema } from "./productSchemas";
+import { ActionFunction, type LoaderFunction } from "react-router-dom";
 
 // export const productsLoader = (() => {}) satisfies LoaderFunction
 export const productsLoader = async function () {
@@ -15,28 +10,16 @@ export const productsLoader = async function () {
     };
 } satisfies LoaderFunction;
 
-export const productCreateAction: ActionFunction = async ({ request }) => {
+export const productSaveAction: ActionFunction = async ({ request }) => {
+    const isUpdate = request.method === "PUT";
+
     const form = await request.formData();
 
-    const data = Object.fromEntries(form);
+    // form.set("name", "");
 
-    const { success, data: product, error } = ProductFormSchema.safeParse(data);
-
-    if (!success) {
-        // if validation fails, cancel and return error object
-        const err = error.format();
-        console.log(err);
-        return err;
-    }
-
-    const resp = await productService.create({
-        ...product,
-        sku: "todo!",
-    });
-
-    if (resp.success) {
-        return redirect(resp.data.id);
+    if (isUpdate) {
+        return await productService.update(form);
     } else {
-        throw resp.error;
+        return await productService.create(form);
     }
 };

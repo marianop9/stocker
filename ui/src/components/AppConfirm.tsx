@@ -28,7 +28,7 @@ export default function AppConfirm({
             triggerVariant={triggerVariant}
         >
             {children}
-            <AppDialogFooter>
+            <AppDialogFooter className="mt-4">
                 <DialogClose asChild>
                     <Button variant="ghost">Cancelar</Button>
                 </DialogClose>

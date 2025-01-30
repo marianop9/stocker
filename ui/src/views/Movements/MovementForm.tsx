@@ -15,6 +15,10 @@ const movementTypeOpts = [
         label: "Venta",
         value: "OUT",
     },
+    {
+        label: "Cambio",
+        value: "EXCHANGE",
+    },
 ];
 
 function MovementForm() {

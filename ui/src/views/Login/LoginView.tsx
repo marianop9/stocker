@@ -14,19 +14,26 @@ const formSchema = z.object({
 type FormType = z.infer<typeof formSchema>;
 
 function LoginView() {
-    const [formError, setFormError] =
-        useState<ZodFormattedError<FormType> | null>(null);
+    const [formError, setFormError] = useState<ZodFormattedError<FormType> | null>(null);
 
     const [authErrorMessage, setAuthErrorMessage] = useState("");
 
     const [showPassword, setShowPassword] = useState(false);
     const passwordInputType = showPassword ? "text" : "password";
 
-    const { login } = useAppAuth();
+    const { userData, login } = useAppAuth();
     const navigate = useNavigate();
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
+
+        if (userData.isValid) {
+            console.log("data is valid");
+
+            navigate("/");
+            return;
+        }
+
         setAuthErrorMessage("");
         setFormError(null);
         const form = new FormData(e.currentTarget);
@@ -41,10 +48,12 @@ function LoginView() {
         const { user, password } = result.data;
         const authResponse = await login(user, password);
 
+        console.log("success", authResponse.success);
         if (!authResponse.success) {
             setAuthErrorMessage(authResponse.error);
             return;
         }
+        console.log("navigating");
 
         navigate("/");
     }
@@ -55,11 +64,7 @@ function LoginView() {
                 <h1 className="text-2xl font-bold">Iniciar sesión</h1>
                 <div className="mt-4">
                     <form noValidate onSubmit={handleSubmit}>
-                        <AppFormEntry
-                            label="Usuario"
-                            name="user"
-                            errors={formError?.user?._errors}
-                        >
+                        <AppFormEntry label="Usuario" name="user" errors={formError?.user?._errors}>
                             <Input name="user" type="email" />
                         </AppFormEntry>
                         <AppFormEntry
@@ -68,19 +73,14 @@ function LoginView() {
                             errors={formError?.password?._errors}
                         >
                             <div className="flex items-center">
-                                <Input
-                                    name="password"
-                                    type={passwordInputType}
-                                />
+                                <Input name="password" type={passwordInputType} />
                                 <span className="flex justify-end items-center">
                                     <Button
                                         size="icon"
                                         variant="outline"
                                         className="absolute "
                                         type="button"
-                                        onClick={() =>
-                                            setShowPassword((v) => !v)
-                                        }
+                                        onClick={() => setShowPassword((v) => !v)}
                                     >
                                         {showPassword ? <EyeOff /> : <Eye />}
                                     </Button>

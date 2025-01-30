@@ -12,8 +12,8 @@ interface IProductSerivce {
     list(): Promise<IProductView[]>;
     get(id: string): Promise<IProductView>;
     find(name: string): Promise<IProductView[]>;
-    create(p: IProductCreateDto): Promise<ServiceResponse<IProductDto>>;
-    update(p: IProductDto): Promise<ServiceResponse<IProductDto>>;
+    create(p: IProductCreateDto | FormData): Promise<ServiceResponse<IProductDto>>;
+    update(p: IProductDto | FormData): Promise<ServiceResponse<IProductDto>>;
 }
 
 export const productService: IProductSerivce = {
@@ -35,13 +35,20 @@ export const productService: IProductSerivce = {
         }
         return result.data.items;
     },
-    async create(p: IProductCreateDto) {
+    async create(p: IProductCreateDto | FormData) {
         const resp = await executeService(pbClient.products.create(p));
 
         return resp;
     },
-    async update(p: IProductDto) {
-        const promise = pbClient.products.update(p.id, p);
+    async update(p: IProductDto | FormData) {
+        let id: string;
+        if (p instanceof FormData) {
+            id = p.get("id") as string;
+        } else {
+            id = p.id;
+        }
+
+        const promise = pbClient.products.update(id, p);
 
         return executeService(promise);
     },

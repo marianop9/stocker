@@ -1,4 +1,4 @@
-import IUser from "@/models/user";
+import { BaseAuthStore } from "pocketbase";
 import { useContext, createContext } from "react";
 
 export type AppAuthResult = {
@@ -6,16 +6,17 @@ export type AppAuthResult = {
     error: string;
 };
 
-export type AppAuthData = {
-    isAuth: boolean;
-    token: string;
-    user: IUser | null;
-};
+// export type AppAuthData = {
+//     isAuth: boolean;
+//     token: string;
+//     user: IUser | null;
+// };
 
 export type AppAuthContext = {
-    authData: AppAuthData;
-    logout(): void;
+    userData: BaseAuthStore;
     login(userOrEmail: string, password: string): Promise<AppAuthResult>;
+    logout(): void;
+    authRefresh(): Promise<boolean>;
 };
 
 export const authContext = createContext<AppAuthContext | undefined>(undefined);

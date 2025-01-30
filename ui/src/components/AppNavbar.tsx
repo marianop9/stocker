@@ -1,5 +1,5 @@
 import useAppAuth from "@/lib/auth/authContext";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 
 const items = [
@@ -22,7 +22,14 @@ const items = [
 ];
 
 function AppNavBar() {
-    const { logout } = useAppAuth();
+    const { logout, userData } = useAppAuth();
+
+    const navigate = useNavigate();
+
+    function onLogout() {
+        logout();
+        navigate("/login");
+    }
 
     return (
         <nav className="flex justify-between p-2">
@@ -46,7 +53,12 @@ function AppNavBar() {
                     </NavLink>
                 ))}
             </div>
-            <Button variant='secondary' onClick={logout}>Cerrar sesión</Button>
+            <div className="flex space-x-2 items-center">
+                <span>{userData.model?.username}</span>
+                <Button variant="secondary" onClick={onLogout}>
+                    Cerrar sesión
+                </Button>
+            </div>
         </nav>
     );
 }
