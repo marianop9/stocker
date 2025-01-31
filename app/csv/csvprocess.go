@@ -2,19 +2,22 @@ package csv
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
-	IdxCategory = iota // solo lo tiene el primero de cada categoria
-	IdxName            // 1
-	_
-	IdxDetail // 3 descripcion
-	_
+	IdxCategory     = iota // solo lo tiene el primero de cada categoria
+	IdxName                // 1
+	IdxClothingType        // tipo/prenda
+	IdxDetail              // 3 descripcion
+	IdxMaterial
 	IdxSize
 	IdxColor
 	_ //  cantidad(7) ! usar disponible
@@ -58,35 +61,93 @@ func (row CSVRecord) getNormalizedCurrency(idx int) string {
 }
 
 type ProductSheetDto struct {
-	Name         string
-	Detail       string
-	CategoryName string
-	ProviderName string
-	UnitCost     float64
-	TotalCost    float64
-	CashPrice    float64
-	RetailPrice  float64
-	Variants     []ProductSheetVariantDto
+	Name         string                   `json:"name"`
+	CategoryName string                   `json:"categoryName"`
+	ProviderName string                   `json:"providerName"`
+	ClothingType string                   `json:"clothingType"`
+	Material     string                   `json:"material"`
+	UnitCost     float64                  `json:"unitCost"`
+	TotalCost    float64                  `json:"totalCost"`
+	CashPrice    float64                  `json:"cashPrice"`
+	RetailPrice  float64                  `json:"retailPrice"`
+	Variants     []ProductSheetVariantDto `json:"variants"`
 }
 
 type ProductSheetVariantDto struct {
-	ColorName    string
-	SizeName     string
-	AvailableQty uint
+	Detail       string `json:"detail"`
+	ColorName    string `json:"colorName"`
+	SizeName     string `json:"sizeName"`
+	AvailableQty uint   `json:"availableQty"`
+}
+
+func newProductSheetDto(currentRow int, record CSVRecord, category string, quantity int) (product ProductSheetDto, err error) {
+	product = ProductSheetDto{
+		CategoryName: category,
+		Name:         record.getField(IdxName),
+		ClothingType: record.getField(IdxClothingType),
+		Material:     record.getField(IdxMaterial),
+		ProviderName: record.getField(IdxProvider),
+	}
+
+	if product.Name == "" {
+		// can't really happen, it should have been checked earlier
+		err = errors.New("empty name")
+		return
+	}
+
+	if product.ProviderName == "" {
+		err = errors.New("empty provider")
+		return
+	}
+
+	product.UnitCost, err = parseFloatOptional(record.getNormalizedCurrency(IdxUnitCost))
+	if err != nil {
+		err = NewWrappedRowError(currentRow, "failed to parse UnitCost", err)
+		return
+	}
+
+	product.TotalCost, err = parseFloatOptional(record.getNormalizedCurrency(IdxTotalCost))
+	if err != nil {
+		err = NewWrappedRowError(currentRow, "failed to parse TotalCost", err)
+		return
+	}
+
+	product.CashPrice, err = parseFloatOptional(record.getNormalizedCurrency(IdxCashPrice))
+	if err != nil {
+		err = NewWrappedRowError(currentRow, "failed to parse CashPrice", err)
+		return
+	}
+
+	product.RetailPrice, err = parseFloatOptional(record.getNormalizedCurrency(IdxRetailPrice))
+	if err != nil {
+		err = NewWrappedRowError(currentRow, "failed to parse RetailPrice", err)
+		return
+	}
+
+	if err = product.addVariant(record, quantity); err != nil {
+		err = NewWrappedRowError(currentRow, "failed to add unit", err)
+		return
+	}
+
+	return
 }
 
 func (p *ProductSheetDto) addVariant(rec CSVRecord, qty int) error {
+	detail := rec.getField(IdxDetail)
+
 	color := rec.getField(IdxColor)
-	if color == "" {
-		return errors.New("empty color")
-	}
+	// el color pasa a ser opcional porque a veces no tiene sentido - ej. en accesorios
+	// if color == "" {
+	// 	return errors.New("empty color")
+	// }
 
 	size := rec.getField(IdxSize)
 	if size == "" {
-		return errors.New("empty size")
+		size = "U" // indica talle único - definir y extraer a constante - no olvidar test
 	}
 
 	variant := ProductSheetVariantDto{
+		Detail:       detail,
 		ColorName:    color,
 		SizeName:     size,
 		AvailableQty: uint(qty),
@@ -105,6 +166,20 @@ func NewProductSheetProcess(stream io.Reader) ProductSheetProcess {
 	return ProductSheetProcess{
 		stream: stream,
 	}
+}
+
+func (process ProductSheetProcess) ExportJSON() error {
+	fileName := fmt.Sprintf("productsSpreadsheetProcess_%s.json", time.Now().Format(time.RFC3339))
+
+	f, err := os.Create(fileName)
+	if err != nil {
+		return fmt.Errorf("failed to create file - %w", err)
+	}
+	defer f.Close()
+
+	encoder := json.NewEncoder(f)
+
+	return encoder.Encode(process.products)
 }
 
 func (process *ProductSheetProcess) ProcessCSV() error {
@@ -151,11 +226,10 @@ func (process *ProductSheetProcess) ProcessCSV() error {
 		}
 
 		// 2. Skip to next product with available qty
-		qty, err := strconv.Atoi(record.getField(IdxAvailable))
+		qty, err := parseIntOptional(record.getField(IdxAvailable))
 		if err != nil {
 			return NewWrappedRowError(currentRow, "failed to parse quantity", err)
-		}
-		if qty == 0 {
+		} else if qty == 0 {
 			continue
 		}
 
@@ -187,48 +261,19 @@ func (process *ProductSheetProcess) ProcessCSV() error {
 	return nil
 }
 
-func newProductSheetDto(currentRow int, record CSVRecord, category string, quantity int) (product ProductSheetDto, err error) {
-	product = ProductSheetDto{
-		Name:         record.getField(IdxName),
-		Detail:       record.getField(IdxDetail),
-		CategoryName: category,
-		ProviderName: record.getField(IdxProvider),
+// simple functions that don't fail if the input string is empty
+func parseIntOptional(s string) (int, error) {
+	if s == "" {
+		return 0, nil
 	}
 
-	if product.Name == "" {
-		// can't really happen
-		err = errors.New("empty name")
-		return
+	return strconv.Atoi(s)
+}
+
+func parseFloatOptional(s string) (float64, error) {
+	if s == "" {
+		return 0, nil
 	}
 
-	product.UnitCost, err = strconv.ParseFloat(record.getNormalizedCurrency(IdxUnitCost), 64)
-	if err != nil {
-		err = NewWrappedRowError(currentRow, "failed to parse UnitCost", err)
-		return
-	}
-
-	product.TotalCost, err = strconv.ParseFloat(record.getNormalizedCurrency(IdxTotalCost), 64)
-	if err != nil {
-		err = NewWrappedRowError(currentRow, "failed to parse TotalCost", err)
-		return
-	}
-
-	product.CashPrice, err = strconv.ParseFloat(record.getNormalizedCurrency(IdxCashPrice), 64)
-	if err != nil {
-		err = NewWrappedRowError(currentRow, "failed to parse CashPrice", err)
-		return
-	}
-
-	product.RetailPrice, err = strconv.ParseFloat(record.getNormalizedCurrency(IdxRetailPrice), 64)
-	if err != nil {
-		err = NewWrappedRowError(currentRow, "failed to parse RetailPrice", err)
-		return
-	}
-
-	if err = product.addVariant(record, quantity); err != nil {
-		err = NewWrappedRowError(currentRow, "failed to add unit", err)
-		return
-	}
-
-	return
+	return strconv.ParseFloat(s, 64)
 }

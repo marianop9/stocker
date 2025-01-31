@@ -7,8 +7,8 @@ import (
 	"github.com/marianop9/stocker/app/stocker"
 	"github.com/marianop9/stocker/app/stocker/movements"
 	"github.com/marianop9/stocker/app/stocker/products"
+	"github.com/marianop9/stocker/app/stocker/spreadsheets"
 	"github.com/pocketbase/pocketbase"
-	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 )
@@ -28,6 +28,7 @@ func main() {
 	stocker := stocker.NewStockerApp(app)
 	products.RegisterProductUnitsHandlers(stocker)
 	movements.RegisterMovementsHandlers(stocker)
+	spreadsheets.RegisterSpreadsheetsHandlers(stocker)
 
 	stocker.AddCustomHandler(
 		"error",
@@ -38,13 +39,13 @@ func main() {
 
 	stocker.RegisterCustomHandlers()
 
-	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
-        // serves static files from the provided public dir (if exists)
-		// if requested file is not found, falls back to index.html
-        se.Router.GET("/{path...}", apis.Static(os.DirFS("./pb_public/dist"), true))
+	// app.OnServe().BindFunc(func(se *core.ServeEvent) error {
+	// 	// serves static files from the provided public dir (if exists)
+	// 	// if requested file is not found, falls back to index.html
+	// 	se.Router.GET("/{path...}", apis.Static(os.DirFS("./pb_public/dist"), true))
 
-        return se.Next()
-    })
+	// 	return se.Next()
+	// })
 
 	if err := app.Start(); err != nil {
 		log.Fatal(err)

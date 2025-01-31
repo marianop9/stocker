@@ -42,8 +42,8 @@ func TestGetNormalizedCurrencyField(t *testing.T) {
 	assert.Equal(t, float64(25000), parsedUnitCost)
 }
 
-// Should fail when unit has empty size or color
-func TestAddUnit(t *testing.T) {
+// Color is optional, if size is empty replace with "unique"
+func TestAddVariant(t *testing.T) {
 	qty := 1
 	p := ProductSheetDto{}
 
@@ -52,14 +52,15 @@ func TestAddUnit(t *testing.T) {
 	record[IdxColor] = ""
 
 	err := p.addVariant(record, qty)
-	assert.Error(t, err)
+	assert.Nil(t, err)
 
 	// size
 	record = getTestRecord()
 	record[IdxSize] = ""
 
 	err = p.addVariant(record, qty)
-	assert.Error(t, err)
+	assert.Nil(t, err)
+	assert.Equal(t, p.Variants[1].SizeName, "U")
 }
 
 func TestProcessCSV(t *testing.T) {
