@@ -6,10 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const (
@@ -168,18 +166,10 @@ func NewProductSheetProcess(stream io.Reader) ProductSheetProcess {
 	}
 }
 
-func (process ProductSheetProcess) ExportJSON() error {
-	fileName := fmt.Sprintf("productsSpreadsheetProcess_%s.json", time.Now().Format(time.RFC3339))
+func (process ProductSheetProcess) ExportJSON() ([]byte, error) {
+	// fileName := fmt.Sprintf("productsSpreadsheetProcess_%s.json", time.Now().Format(time.RFC3339))
 
-	f, err := os.Create(fileName)
-	if err != nil {
-		return fmt.Errorf("failed to create file - %w", err)
-	}
-	defer f.Close()
-
-	encoder := json.NewEncoder(f)
-
-	return encoder.Encode(process.products)
+	return json.Marshal(process.products)
 }
 
 func (process *ProductSheetProcess) ProcessCSV() error {
