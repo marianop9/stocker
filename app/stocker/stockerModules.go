@@ -4,6 +4,7 @@ const (
 	ModuleProducts     = "products"
 	ModuleProductUnits = "productUnits"
 	ModuleMovements    = "movements"
+	ModuleSpreadsheets = "spreadsheets"
 )
 
 const (

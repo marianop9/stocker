@@ -1,9 +1,8 @@
 import ProductsDataTable from "./ProductsDataTable";
-import { IProductDto } from "@/models/products";
+import { IProductDto, IProductView } from "@/models/products";
 import { Button } from "@/components/ui/button";
 import { useLoaderData } from "react-router-dom";
 import { AppDialog, AppDialogContent, AppDialogTrigger } from "@/components/AppDialog";
-import { ListResult } from "pocketbase";
 import ProductForm from "./ProductForm";
 import { useState } from "react";
 import AppAlert from "@/components/AppAlert";
@@ -14,7 +13,7 @@ function ProductsView() {
     const [showProductForm, setShowProductForm] = useState(false);
 
     const { products } = useLoaderData() as {
-        products: ListResult<IProductView>;
+        products: IProductView[];
     };
 
     const handleCreatedProduct = (p: IProductDto) => {
@@ -41,7 +40,7 @@ function ProductsView() {
                 </AppDialog>
             </div>
 
-            <ProductsDataTable products={products?.items ?? []} />
+            <ProductsDataTable products={products} />
         </div>
     );
 }
