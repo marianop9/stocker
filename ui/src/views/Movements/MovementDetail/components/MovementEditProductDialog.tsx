@@ -62,7 +62,7 @@ export default function StockMovementEditProductDialog({
                         <span>{prodUnit.colorName}</span>
                     </AppFormEntry>
                     <AppFormEntry label="Talle" name="" disabled>
-                        <span>{prodUnit.sizeAlias}</span>
+                        <span>{prodUnit.sizeName}</span>
                     </AppFormEntry>
                 </div>
                 <form onSubmit={handleSubmit} className="flex justify-center items-center gap-x-4">

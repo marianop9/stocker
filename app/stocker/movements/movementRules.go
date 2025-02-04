@@ -17,6 +17,8 @@ const (
 	MovementStateOpen     = "OPEN"
 	MovementStateClosed   = "CLOSED"
 	MovementStateAnnulled = "ANNULLED"
+	// this state doesn't get saved since the record is erased from the db
+	MovementStateDeleted = "DELETED"
 )
 
 func checkStateTransition(prevState, newState string) error {
@@ -24,21 +26,31 @@ func checkStateTransition(prevState, newState string) error {
 		return fmt.Errorf("invalid movement state transition ('%s' -> '%s')", prev, new)
 	}
 
+	isAllowed := func(state string, allowedStates ...string) bool {
+		for _, allowed := range allowedStates {
+			if allowed == state {
+				return true
+			}
+		}
+		return false
+	}
+
 	switch newState {
 	case MovementStateOpen:
 	case MovementStateClosed:
 	case MovementStateAnnulled:
+	case MovementStateDeleted:
 	default:
 		return fmt.Errorf("new movement state is not recognized: '%s'", newState)
 	}
 
 	switch prevState {
 	case MovementStateOpen:
-		if newState != MovementStateClosed {
+		if !isAllowed(newState, MovementStateClosed, MovementStateDeleted) {
 			return invalidTransition(prevState, newState)
 		}
 	case MovementStateClosed:
-		if newState != MovementStateAnnulled {
+		if !isAllowed(newState, MovementStateAnnulled) {
 			return invalidTransition(prevState, newState)
 		}
 	case MovementStateAnnulled:

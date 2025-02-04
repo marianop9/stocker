@@ -1,5 +1,12 @@
 import { pbClient } from "./pocketbase";
-import type { ICategory, IColor, IProvider, ISize } from "@/models/administrations";
+import type {
+    ICategory,
+    IClothingType,
+    IColor,
+    IMaterial,
+    IProvider,
+    ISize,
+} from "@/models/administrations";
 import { executeService, ServiceResponse } from "./serviceResponse";
 
 interface IAdministrationService<TEntity> {
@@ -24,7 +31,7 @@ export const categoryService: IAdministrationService<ICategory> = {
     },
 };
 export const providerService: IAdministrationService<IProvider> = {
-    async list() {
+    list() {
         return pbClient.providers.getFullList({
             fields: "id, name, description, code",
         });
@@ -34,6 +41,38 @@ export const providerService: IAdministrationService<IProvider> = {
             entity.id === ""
                 ? pbClient.providers.create(entity)
                 : pbClient.providers.update(entity.id, entity);
+
+        return executeService(promise);
+    },
+};
+
+export const materialService: IAdministrationService<IMaterial> = {
+    list() {
+        return pbClient.materials.getFullList({
+            fields: "id, name",
+        });
+    },
+    createUpdate(entity) {
+        const promise =
+            entity.id === ""
+                ? pbClient.materials.create(entity)
+                : pbClient.materials.update(entity.id, entity);
+
+        return executeService(promise);
+    },
+};
+
+export const clothingTypeService: IAdministrationService<IClothingType> = {
+    list() {
+        return pbClient.clothingTypes.getFullList({
+            fields: "id, name, categoryId",
+        });
+    },
+    createUpdate(entity) {
+        const promise =
+            entity.id === ""
+                ? pbClient.clothingTypes.create(entity)
+                : pbClient.clothingTypes.update(entity.id, entity);
 
         return executeService(promise);
     },
@@ -57,7 +96,7 @@ export const colorService: IAdministrationService<IColor> = {
 
 export const sizeService: IAdministrationService<ISize> = {
     async list() {
-        return await pbClient.sizes.getFullList({ fields: "id, alias, code" });
+        return await pbClient.sizes.getFullList({ fields: "id, name, code" });
     },
     async createUpdate(entity) {
         const promise =

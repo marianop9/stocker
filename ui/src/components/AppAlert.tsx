@@ -5,7 +5,7 @@ import { HtmlHTMLAttributes, PropsWithChildren, forwardRef } from "react";
 
 interface Props extends PropsWithChildren {
     variant: "error" | "success" | "default";
-    title: string;
+    title?: string;
 }
 
 const AppAlert = forwardRef<HTMLDivElement, Props & HtmlHTMLAttributes<HTMLDivElement>>(

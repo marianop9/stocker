@@ -30,8 +30,8 @@ function SizesTab() {
 
     const columns: ColumnDef<ISize>[] = [
         {
-            accessorKey: "alias",
-            header: "Alias",
+            accessorKey: "name",
+            header: "Name",
             filterFn: "includesString",
         },
         {

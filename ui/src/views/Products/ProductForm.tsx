@@ -14,6 +14,12 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
 import { useFetcher } from "react-router-dom";
 import AppAlert from "@/components/AppAlert";
+import {
+    useCategories,
+    useClothingTypes,
+    useMaterials,
+    useProviders,
+} from "@/lib/hooks/useAdministrations";
 
 type ProductFormSchemaType = z.infer<typeof ProductFormSchema>;
 
@@ -33,8 +39,10 @@ function ProductForm({ product, afterSubmit }: Props) {
         },
     );
 
-    const { data: categories } = useService(categoryService.list);
-    const { data: providers } = useService(providerService.list);
+    const { data: categories } = useCategories();
+    const { data: providers } = useProviders();
+    const { data: materials } = useMaterials();
+    const { data: clothingTypes } = useClothingTypes();
 
     const [serverError, setServerError] = useState("");
     const serverErrorRef = useRef<HTMLDivElement>(null);
@@ -60,36 +68,36 @@ function ProductForm({ product, afterSubmit }: Props) {
         serverErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [serverError]);
 
-    const [margin, setMargin] = useState(() => {
-        if (!product || product.cost * product.price <= 0) {
-            return "";
-        }
+    // const [margin, setMargin] = useState(() => {
+    //     if (!product || product.cost * product.price <= 0) {
+    //         return "";
+    //     }
 
-        const margin = product.price / product.cost - 1;
-        if (isNaN(margin)) return "";
+    //     const margin = product.price / product.cost - 1;
+    //     if (isNaN(margin)) return "";
 
-        return Intl.NumberFormat("es-AR", {
-            style: "percent",
-            minimumFractionDigits: 1,
-        }).format(margin);
-    });
+    //     return Intl.NumberFormat("es-AR", {
+    //         style: "percent",
+    //         minimumFractionDigits: 1,
+    //     }).format(margin);
+    // });
 
-    function updateMargin(cost: number, price: number) {
-        if (cost * price <= 0) {
-            setMargin("");
-            return;
-        }
+    // function updateMargin(cost: number, price: number) {
+    //     if (cost * price <= 0) {
+    //         setMargin("");
+    //         return;
+    //     }
 
-        const margin = price / cost - 1;
-        if (!isNaN(margin)) {
-            setMargin(
-                Intl.NumberFormat("es-AR", {
-                    style: "percent",
-                    minimumFractionDigits: 1,
-                }).format(margin),
-            );
-        }
-    }
+    //     const margin = price / cost - 1;
+    //     if (!isNaN(margin)) {
+    //         setMargin(
+    //             Intl.NumberFormat("es-AR", {
+    //                 style: "percent",
+    //                 minimumFractionDigits: 1,
+    //             }).format(margin),
+    //         );
+    //     }
+    // }
 
     function buildSku(categoryId: string, providerId: string) {
         if (!categoryId || !providerId) return;
@@ -169,66 +177,178 @@ function ProductForm({ product, afterSubmit }: Props) {
                 ></textarea> */}
                 <Textarea {...register("description")} />
             </AppFormEntry>
-            <AppFormEntry label="Categoria" name="categoryId" errors={errors?.categoryId?._errors}>
-                <Controller
-                    control={control}
+            <div className="grid gap-x-2 grid-cols-2">
+                <AppFormEntry
+                    label="Categoria"
                     name="categoryId"
-                    render={({ field: { onChange, ...field } }) => (
-                        <AppSelect
-                            options={
-                                categories?.map((it) => ({
-                                    label: it.name,
-                                    value: it.id,
-                                })) ?? []
-                            }
-                            {...field}
-                            onValueChange={(value) => {
-                                buildSku(value, getValues("providerId"));
-                                onChange(value);
-                            }}
-                        />
-                    )}
-                />
-            </AppFormEntry>
-            <AppFormEntry label="Proveedor" name="providerId" errors={errors?.providerId?._errors}>
-                <Controller
-                    control={control}
+                    errors={errors?.categoryId?._errors}
+                >
+                    <Controller
+                        control={control}
+                        name="categoryId"
+                        render={({ field: { onChange, ...field } }) => (
+                            <AppSelect
+                                options={
+                                    categories?.map((it) => ({
+                                        label: it.name,
+                                        value: it.id,
+                                    })) ?? []
+                                }
+                                {...field}
+                                onValueChange={(value) => {
+                                    buildSku(value, getValues("providerId"));
+                                    onChange(value);
+                                }}
+                            />
+                        )}
+                    />
+                </AppFormEntry>
+                <AppFormEntry
+                    label="Proveedor"
                     name="providerId"
-                    render={({ field: { onChange, ...field } }) => (
-                        <AppSelect
-                            options={
-                                providers?.map((it) => ({
-                                    label: it.name,
-                                    value: it.id,
-                                })) ?? []
-                            }
-                            {...field}
-                            onValueChange={(value) => {
-                                buildSku(getValues("categoryId"), value);
-                                onChange(value);
-                            }}
-                        />
-                    )}
-                />
-            </AppFormEntry>
-            <AppFormEntry
-                label="Costo"
-                name="cost"
-                errors={errors?.cost?._errors}
-                helperText="Costo del producto (opcional)."
-            >
-                <Input
-                    type="number"
-                    {...register("cost", {
-                        onChange(event) {
-                            updateMargin(event.target.value, getValues("price"));
-                        },
-                        valueAsNumber: true,
-                    })}
-                    step=".01"
-                />
-            </AppFormEntry>
-            <div className="flex justify-between">
+                    errors={errors?.providerId?._errors}
+                >
+                    <Controller
+                        control={control}
+                        name="providerId"
+                        render={({ field: { onChange, ...field } }) => (
+                            <AppSelect
+                                options={
+                                    providers?.map((it) => ({
+                                        label: it.name,
+                                        value: it.id,
+                                    })) ?? []
+                                }
+                                {...field}
+                                onValueChange={(value) => {
+                                    buildSku(getValues("categoryId"), value);
+                                    onChange(value);
+                                }}
+                            />
+                        )}
+                    />
+                </AppFormEntry>
+
+                <AppFormEntry
+                    label="Material"
+                    name="materialId"
+                    errors={errors?.materialId?._errors}
+                >
+                    <Controller
+                        control={control}
+                        name="materialId"
+                        render={({ field: { onChange, ...field } }) => (
+                            <AppSelect
+                                options={
+                                    materials?.map((it) => ({
+                                        label: it.name,
+                                        value: it.id,
+                                    })) ?? []
+                                }
+                                {...field}
+                                onValueChange={(value) => {
+                                    // buildSku(getValues("categoryId"), value);
+                                    onChange(value);
+                                }}
+                            />
+                        )}
+                    />
+                </AppFormEntry>
+                <AppFormEntry
+                    label="Tipo de prenda"
+                    name="clothingTypeId"
+                    errors={errors?.clothingTypeId?._errors}
+                >
+                    <Controller
+                        control={control}
+                        name="clothingTypeId"
+                        render={({ field: { onChange, ...field } }) => (
+                            <AppSelect
+                                options={
+                                    clothingTypes?.map((it) => ({
+                                        label: it.name,
+                                        value: it.id,
+                                    })) ?? []
+                                }
+                                {...field}
+                                onValueChange={(value) => {
+                                    // buildSku(getValues("categoryId"), value);
+                                    onChange(value);
+                                }}
+                            />
+                        )}
+                    />
+                </AppFormEntry>
+            </div>
+
+            <div className="grid gap-x-2 grid-cols-2">
+                <AppFormEntry
+                    label="Costo unitario"
+                    name="unitCost"
+                    errors={errors?.unitCost?._errors}
+                >
+                    <Input
+                        type="number"
+                        {...register("unitCost", {
+                            // onChange(event) {
+                            //     updateMargin(event.target.value, getValues("retailPrice"));
+                            // },
+                            valueAsNumber: true,
+                        })}
+                        step=".01"
+                    />
+                </AppFormEntry>
+                <AppFormEntry
+                    label="Costo total"
+                    name="totalCost"
+                    errors={errors?.totalCost?._errors}
+                >
+                    <Input
+                        type="number"
+                        {...register("totalCost", {
+                            // onChange(event) {
+                            //     updateMargin(event.target.value, getValues("retailPrice"));
+                            // },
+                            valueAsNumber: true,
+                        })}
+                        step=".01"
+                    />
+                </AppFormEntry>
+
+                <AppFormEntry
+                    label="Precio contado"
+                    name="cashPrice"
+                    errors={errors?.cashPrice?._errors}
+                >
+                    <Input
+                        type="number"
+                        {...register("cashPrice", {
+                            // onChange(event) {
+                            //     // updateMargin(getValues("cost"), event.target.value);
+                            // },
+                            valueAsNumber: true,
+                        })}
+                        step=".01"
+                    />
+                </AppFormEntry>
+                <AppFormEntry
+                    label="Precio lista"
+                    name="retailPrice"
+                    errors={errors?.retailPrice?._errors}
+                >
+                    <Input
+                        type="number"
+                        {...register("retailPrice", {
+                            // onChange(event) {
+                            //     // updateMargin(getValues("cost"), event.target.value);
+                            // },
+                            valueAsNumber: true,
+                        })}
+                        step=".01"
+                    />
+                </AppFormEntry>
+            </div>
+            {/* <div className="flex justify-between">
                 <AppFormEntry label="Precio" name="price" errors={errors?.price?._errors}>
                     <Input
                         type="number"
@@ -244,7 +364,7 @@ function ProductForm({ product, afterSubmit }: Props) {
                 <AppFormEntry label="Margen" name="margin">
                     <Input name="margin" value={margin} disabled />
                 </AppFormEntry>
-            </div>
+            </div> */}
             <div>
                 <AppFormEntry label="SKU" name="sku">
                     <Input {...register("sku")} disabled />

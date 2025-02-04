@@ -6,8 +6,14 @@ export interface IProductView {
     categoryName: string;
     providerId: string;
     providerName: string;
-    cost: number;
-    price: number;
+    unitCost: number;
+    totalCost: number;
+    cashPrice: number;
+    retailPrice: number;
+    materialId: string;
+    materialName: string;
+    clothingTypeId: string;
+    clothingTypeName: string;
     sku: string;
 }
 
@@ -31,7 +37,7 @@ export interface IProductUnitView {
     colorHexcode: string;
     colorName: string;
     sizeId: string;
-    sizeAlias: string;
+    sizeName: string;
     quantity: number;
 }
 

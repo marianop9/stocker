@@ -26,6 +26,7 @@ const columns: ColumnDef<IProductView>[] = [
     {
         accessorKey: "sku",
         header: "SKU",
+        enableColumnFilter: false,
     },
     {
         id: "actions",

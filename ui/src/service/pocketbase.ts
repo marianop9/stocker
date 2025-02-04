@@ -1,4 +1,11 @@
-import type { ICategory, IColor, IProvider, ISize } from "@/models/administrations";
+import type {
+    ICategory,
+    IClothingType,
+    IColor,
+    IMaterial,
+    IProvider,
+    ISize,
+} from "@/models/administrations";
 import {
     IMovementDetailProductsDto,
     IMovementDto,
@@ -71,6 +78,14 @@ class PocketBaseClient {
 
     get providers(): RecordService<IProvider> {
         return this.pb.collection("providers");
+    }
+
+    get materials(): RecordService<IMaterial> {
+        return this.pb.collection("materials");
+    }
+
+    get clothingTypes(): RecordService<IClothingType> {
+        return this.pb.collection("clothing_types");
     }
 
     get colors(): RecordService<IColor> {

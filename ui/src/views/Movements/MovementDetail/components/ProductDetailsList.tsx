@@ -69,7 +69,7 @@ export default function ProductDetailList({ movementType, movementProducts, onDe
                                             />
                                         </td>
                                         <td className="p-2">
-                                            <SizeBadge size={unit.sizeAlias} />
+                                            <SizeBadge size={unit.sizeName} />
                                         </td>
                                         <td className="p-2">{unit.quantity}</td>
                                         <td className="p-2">
@@ -101,7 +101,7 @@ export default function ProductDetailList({ movementType, movementProducts, onDe
                                                         name={unit.colorName}
                                                         hexcode={unit.colorHexcode}
                                                     />
-                                                    <SizeBadge size={unit.sizeAlias} />
+                                                    <SizeBadge size={unit.sizeName} />
                                                 </div>
                                             </AppConfirm>
                                         </td>

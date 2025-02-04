@@ -31,7 +31,7 @@ export interface IStockEntryProductDto {
     price: number;
     colorName: string;
     colorHexcode: string;
-    sizeAlias: string;
+    sizeName: string;
 }
 
 // derived from IStockEntryProductDto
@@ -47,7 +47,7 @@ export interface IStockEntryProductView {
         productUnitId: string;
         colorName: string;
         colorHexcode: string;
-        sizeAlias: string;
+        sizeName: string;
     }[];
 }
 
@@ -64,7 +64,7 @@ export interface IMovementDetailProductsDto {
     price: number;
     colorName: string;
     colorHexcode: string;
-    sizeAlias: string;
+    sizeName: string;
 }
 
 export interface IMovementDetailProductsView {
@@ -80,6 +80,6 @@ export interface IMovementDetailProductsView {
         productUnitId: string;
         colorName: string;
         colorHexcode: string;
-        sizeAlias: string;
+        sizeName: string;
     }[];
 }

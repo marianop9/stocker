@@ -8,10 +8,11 @@ import { useProductUnitsListService } from "@/lib/hooks/useProductUnitsService";
 import { IMovementDto, IStockMovementDto } from "@/models/movements";
 import { IProductUnitView, IProductView } from "@/models/products";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMovementDetailContext } from "../movementDetailContext";
 import AppAlert from "@/components/AppAlert";
 import { Label } from "@/components/ui/label";
+import AppColorDisplay from "@/components/AppColorDisplay";
 
 interface MovementAddProductsFormProps {
     movement: IMovementDto;
@@ -130,7 +131,7 @@ export default function MovementAddProductsForm({
                     ),
                 },
                 {
-                    accessorKey: "sizeAlias",
+                    accessorKey: "sizeName",
                     header: "Talle",
                 },
                 {
@@ -204,7 +205,9 @@ export default function MovementAddProductsForm({
                     onRowSelectionChange={setSelectedRows}
                 />
                 <AppFormValidationMessage message={selectedRowsValidation} />
-                <AppAlert variant="error" message={serverError} />
+                <AppAlert variant="error">
+                    <p>{serverError}</p>
+                </AppAlert>
 
                 <AppDialogFooter className="flex justify-end">
                     <Button onClick={handleSave}>Agregar</Button>

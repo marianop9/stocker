@@ -11,7 +11,7 @@ interface Props {
     onSuccess(c: ISize, wasUpdate: boolean): void;
 }
 
-type SizeFormType = Omit<ISize, "id">
+type SizeFormType = Omit<ISize, "id">;
 
 function SizesForm({ formEntity, onSuccess }: Props) {
     const {
@@ -35,15 +35,11 @@ function SizesForm({ formEntity, onSuccess }: Props) {
 
     return (
         <form onSubmit={handleSubmit(submitHandler)}>
-            <AppFormEntry
-                label="Alias"
-                name="alias"
-                errors={errors.alias?.message}
-            >
+            <AppFormEntry label="Nombre" name="name" errors={errors.name?.message}>
                 <Input
                     type="text"
-                    {...register("alias", {
-                        required: "Ingrese un alias.",
+                    {...register("name", {
+                        required: "Ingrese un nombre.",
                         maxLength: {
                             value: 10,
                             message: "Ingrese no más de 10 caracteres.",
@@ -51,11 +47,7 @@ function SizesForm({ formEntity, onSuccess }: Props) {
                     })}
                 />
             </AppFormEntry>
-            <AppFormEntry
-                label="Código"
-                name="code"
-                errors={errors.code?.message}
-            >
+            <AppFormEntry label="Código" name="code" errors={errors.code?.message}>
                 <Input
                     type="text"
                     {...register("code", {

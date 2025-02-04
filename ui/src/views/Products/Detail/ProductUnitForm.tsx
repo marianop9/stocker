@@ -84,9 +84,7 @@ function ProductUnitForm({ productId, details, onSubmitted }: Props) {
         console.log(response);
 
         if (!response.success) {
-            console.error(
-                "ocurrió un error al intentar crear las unidades, implementar...",
-            );
+            console.error("ocurrió un error al intentar crear las unidades, implementar...");
         }
         onSubmitted();
     };
@@ -113,12 +111,9 @@ function ProductUnitForm({ productId, details, onSubmitted }: Props) {
                 <h4>Talles</h4>
                 <div className="flex justify-evenly">
                     {newSizesByColor.map((size) => (
-                        <div
-                            key={size.id + selectedColor}
-                            className="flex items-top space-x-2"
-                        >
+                        <div key={size.id + selectedColor} className="flex items-top space-x-2">
                             <Checkbox name="sizeId" value={size.id} />
-                            <Label>{size.alias}</Label>
+                            <Label>{size.name}</Label>
                         </div>
                     ))}
                 </div>
@@ -129,19 +124,11 @@ function ProductUnitForm({ productId, details, onSubmitted }: Props) {
                     <Checkbox
                         id="setInitialQty"
                         checked={hasInitialQty}
-                        onCheckedChange={(x) =>
-                            setHasInitialQty(x !== "indeterminate" && x)
-                        }
+                        onCheckedChange={(x) => setHasInitialQty(x !== "indeterminate" && x)}
                     />
-                    <Label htmlFor="setInitialQty">
-                        Tiene cantidad inicial
-                    </Label>
+                    <Label htmlFor="setInitialQty">Tiene cantidad inicial</Label>
                 </div>
-                <AppFormEntry
-                    name="quantity"
-                    label="Cantidad"
-                    disabled={!hasInitialQty}
-                >
+                <AppFormEntry name="quantity" label="Cantidad" disabled={!hasInitialQty}>
                     <Input
                         type="number"
                         disabled={!hasInitialQty}

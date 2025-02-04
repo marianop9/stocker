@@ -1,6 +1,8 @@
 import {
     categoryService,
+    clothingTypeService,
     colorService,
+    materialService,
     providerService,
     sizeService,
 } from "@/service/administrationsService";
@@ -33,6 +35,32 @@ export function useProviders() {
     };
 }
 
+export function useMaterials() {
+    const queryKey = ["materials"];
+    const queryResult = useQuery({
+        queryKey,
+        queryFn: materialService.list,
+    });
+
+    return {
+        queryKey,
+        ...queryResult,
+    };
+}
+
+export function useClothingTypes() {
+    const queryKey = ["clothing-types"];
+    const queryResult = useQuery({
+        queryKey,
+        queryFn: clothingTypeService.list,
+    });
+
+    return {
+        queryKey,
+        ...queryResult,
+    };
+}
+
 export function useColors() {
     const queryKey = ["colors"];
     const queryResult = useQuery({
@@ -43,7 +71,7 @@ export function useColors() {
     return {
         queryKey,
         ...queryResult,
-    }
+    };
 }
 
 export function useSizes() {
@@ -56,5 +84,5 @@ export function useSizes() {
     return {
         queryKey,
         ...queryResult,
-    }
+    };
 }

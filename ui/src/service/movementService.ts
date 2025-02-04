@@ -69,7 +69,7 @@ export const stockEntryService: IStockMovementService = {
                     productUnitId: dto.productUnitId,
                     colorName: dto.colorName,
                     colorHexcode: dto.colorHexcode,
-                    sizeAlias: dto.sizeAlias,
+                    sizeName: dto.sizeName,
                 });
             } else {
                 views.push({
@@ -86,7 +86,7 @@ export const stockEntryService: IStockMovementService = {
                             productUnitId: dto.productUnitId,
                             colorName: dto.colorName,
                             colorHexcode: dto.colorHexcode,
-                            sizeAlias: dto.sizeAlias,
+                            sizeName: dto.sizeName,
                         },
                     ],
                 });
@@ -138,7 +138,7 @@ export const stockExitService: IStockMovementService = {
                     productUnitId: dto.productUnitId,
                     colorName: dto.colorName,
                     colorHexcode: dto.colorHexcode,
-                    sizeAlias: dto.sizeAlias,
+                    sizeName: dto.sizeName,
                 });
             } else {
                 views.push({
@@ -155,7 +155,7 @@ export const stockExitService: IStockMovementService = {
                             productUnitId: dto.productUnitId,
                             colorName: dto.colorName,
                             colorHexcode: dto.colorHexcode,
-                            sizeAlias: dto.sizeAlias,
+                            sizeName: dto.sizeName,
                         },
                     ],
                 });

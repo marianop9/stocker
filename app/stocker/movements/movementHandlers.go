@@ -227,7 +227,8 @@ var handleAnnulMovement stocker.StockerHandlerBuilder = func(app *stocker.Stocke
 
 func deleteMovement(app *stocker.StockerApp, record *core.Record) error {
 	prevState := record.GetString("state")
-	err := checkStateTransition(prevState, MovementStateAnnulled)
+	newState := MovementStateDeleted
+	err := checkStateTransition(prevState, newState)
 	if err != nil {
 		return err
 	}

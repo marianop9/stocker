@@ -35,11 +35,7 @@ function ColorsForm({ formEntity, onSuccess }: Props) {
 
     return (
         <form onSubmit={handleSubmit(submitHandler)}>
-            <AppFormEntry
-                label="Alias"
-                name="alias"
-                errors={errors.name?.message}
-            >
+            <AppFormEntry label="Nombre" name="name" errors={errors.name?.message}>
                 <Input
                     type="text"
                     {...register("name", {
@@ -53,15 +49,14 @@ function ColorsForm({ formEntity, onSuccess }: Props) {
             </AppFormEntry>
             <div className="flex justify-between">
                 <AppFormEntry label="Color" name="hexcode" className="w-20">
-                    <Input type="color" {...register('hexcode', {
-                        required: 'Ingrese un color.'
-                    })} />
+                    <Input
+                        type="color"
+                        {...register("hexcode", {
+                            required: "Ingrese un color.",
+                        })}
+                    />
                 </AppFormEntry>
-                <AppFormEntry   
-                    label="Código"
-                    name="code"
-                    errors={errors.code?.message}
-                >
+                <AppFormEntry label="Código" name="code" errors={errors.code?.message}>
                     <Input
                         type="text"
                         {...register("code", {
