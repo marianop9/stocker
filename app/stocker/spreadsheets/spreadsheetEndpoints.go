@@ -1,15 +1,19 @@
 package spreadsheets
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/marianop9/stocker/app/csv"
 	"github.com/marianop9/stocker/app/stocker"
 	"github.com/marianop9/stocker/app/stocker/utils"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -29,7 +33,7 @@ func RegisterSpreadsheetsHandlers(app *stocker.StockerApp) {
 
 		description := e.Request.PostFormValue("description")
 
-		file, _, err := e.Request.FormFile("productsSpreadSheet")
+		file, _, err := e.Request.FormFile("productsSpreadsheet")
 		if err != nil {
 			return e.JSON(http.StatusInternalServerError, utils.NewErrorResponse(fmt.Errorf("failed to retrieve file: %w", err)))
 		}
@@ -94,6 +98,15 @@ func RegisterSpreadsheetsHandlers(app *stocker.StockerApp) {
 	- executed (date) (on success)
 */
 
+type (
+	nameIdMap        map[string]string
+	auxRecordsResult struct {
+		key string
+		m   nameIdMap
+		err error
+	}
+)
+
 func processSpreadsheetRecord(app core.App, record *core.Record) {
 	logger := app.Logger().WithGroup("product-spreadsheet-process").With("id", record.Id)
 	logger.Info("starting process")
@@ -102,7 +115,7 @@ func processSpreadsheetRecord(app core.App, record *core.Record) {
 
 	products := make([]csv.ProductSheetDto, 0, 10)
 	if err := record.UnmarshalJSONField("data", &products); err != nil {
-		processSpreadsheetError(app, record, logger, fmt.Errorf("failed to unmarshall json: %w", err))
+		processSpreadsheetErrors(app, record, logger, fmt.Errorf("failed to unmarshall json: %w", err))
 		return
 	}
 
@@ -111,87 +124,377 @@ func processSpreadsheetRecord(app core.App, record *core.Record) {
 	record.Set("state", productSpreadsheetProcessStateRunning)
 	record.Set("error", "")
 	if err := app.Save(record); err != nil {
-		processSpreadsheetError(app, record, logger, fmt.Errorf("failed to update process state: %w", err))
+		processSpreadsheetErrors(app, record, logger, fmt.Errorf("failed to update process state: %w", err))
 		return
 	}
 
-	// collection, err := app.FindCollectionByNameOrId(collectionProductSpreadsheetProcesses)
-	// if err != nil {
-	// 	processSpreadsheetError(app, record, logger, fmt.Errorf("failed to retrieve collection: %w", err))
-	// 	return
-	// }
-
-	type nameIdMap map[string]string
 	// retrieve or create auxiliary product records (category, provider, etc)
-	// opt 1: get all db records and create the new ones
+	// opt 1: get all existing db records (even if not in json data) and create the new ones
 	// opt 2: get all records in json data, retrieve the ids of existing ones and create new ones
+	// going with opt 1
+
+	chResult := make(chan auxRecordsResult, 3)
+	wg := sync.WaitGroup{}
+
 	// categories
-	chCategories := make(chan nameIdMap)
-	func() {
-		records, err := app.FindAllRecords(stocker.CollectionCategories)
-		if err != nil {
-			processSpreadsheetError(app, record, logger, fmt.Errorf("categories query: %w", err))
+	// clothing_types depend on categories, so they are processed in the same go routine
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		collection := stocker.CollectionCategories
+
+		categoryNameIds, err := getOrCreateRecords(app, collection, products, func(psd csv.ProductSheetDto) string { return psd.CategoryName })
+		chResult <- auxRecordsResult{
+			key: collection,
+			m:   categoryNameIds,
+			err: err,
 		}
 
-		collection, err := app.FindCollectionByNameOrId(stocker.CollectionCategories)
-		if err != nil {
-			processSpreadsheetError(app, record, logger, fmt.Errorf("failed to retrieve collection: %w", err))
+		clothingTypeNameIds, err := getOrCreateClothingTypes(app, products, categoryNameIds)
+		chResult <- auxRecordsResult{
+			key: stocker.CollectionClothingTypes,
+			m:   clothingTypeNameIds,
+			err: err,
 		}
-
-		m := make(nameIdMap, len(records))
-
-		for _, r := range records {
-			name := strings.ToLower(r.GetString("name"))
-			m[name] = m[r.Id]
-		}
-
-		for _, p := range products {
-			if _, exists := m[strings.ToLower(p.CategoryName)]; !exists {
-				newRec := core.NewRecord(collection)
-				// newRec.
-			}
-		}
-
-		chCategories <- nameIdMap{}
 	}()
 
 	// providers
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		collection := stocker.CollectionProviders
+
+		recordNameIds, err := getOrCreateRecords(app, collection, products, func(psd csv.ProductSheetDto) string { return psd.ProviderName })
+		chResult <- auxRecordsResult{
+			key: collection,
+			m:   recordNameIds,
+			err: err,
+		}
+	}()
+
 	// materials
-	// clothing_types
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		collection := stocker.CollectionMaterials
+
+		recordNameIds, err := getOrCreateRecords(app, collection, products, func(psd csv.ProductSheetDto) string { return psd.Material })
+		chResult <- auxRecordsResult{
+			key: collection,
+			m:   recordNameIds,
+			err: err,
+		}
+	}()
 
 	// retrive or create auxiliary product_unit records
-	// colors
-	// sizes
+	// (there always is at least a variant for each product)
+	productVariants := make([]*csv.ProductSheetVariantDto, 0, len(products))
+	for i := range products {
+		for j := range products[i].Variants {
+			productVariants = append(productVariants, &products[i].Variants[j])
+		}
+	}
 
-	// (TODO): Add fields to products table:
-	// 	- 	UnitCost
-	// 	- 	TotalCost
-	// 	- 	CashPrice
-	// 	- 	RetailPrice
+	// colors
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		collection := stocker.CollectionColors
+
+		recordNameIds, err := getOrCreateRecords(app, collection, productVariants, func(v *csv.ProductSheetVariantDto) string { return v.ColorName })
+		chResult <- auxRecordsResult{
+			key: collection,
+			m:   recordNameIds,
+			err: err,
+		}
+	}()
+
+	// sizes
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		collection := stocker.CollectionSizes
+
+		recordNameIds, err := getOrCreateRecords(app, collection, productVariants, func(v *csv.ProductSheetVariantDto) string { return v.SizeName })
+		chResult <- auxRecordsResult{
+			key: collection,
+			m:   recordNameIds,
+			err: err,
+		}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(chResult)
+	}()
+
+	var (
+		categoriesMap    nameIdMap
+		providersMap     nameIdMap
+		materialsMap     nameIdMap
+		clothingTypesMap nameIdMap
+		colorsMap        nameIdMap
+		sizesMap         nameIdMap
+	)
+
+	errors := make([]error, 0)
+	for result := range chResult {
+		if result.err != nil {
+			errors = append(errors, result.err)
+			continue
+		}
+
+		switch result.key {
+		case stocker.CollectionCategories:
+			categoriesMap = result.m
+		case stocker.CollectionProviders:
+			providersMap = result.m
+		case stocker.CollectionMaterials:
+			materialsMap = result.m
+		case stocker.CollectionClothingTypes:
+			clothingTypesMap = result.m
+		case stocker.CollectionColors:
+			colorsMap = result.m
+		case stocker.CollectionSizes:
+			sizesMap = result.m
+		}
+	}
+	if len(errors) > 0 {
+		processSpreadsheetErrors(app, record, logger, errors...)
+		return
+	}
+
+	// log.Printf("categories:\n\t%#v\n", categoriesMap)
+	// log.Printf("providers:\n\t%#v\n", providersMap)
+	// log.Printf("materials:\n\t%#v\n", materialsMap)
+	// log.Printf("clothingTypes:\n\t%#v\n", clothingTypesMap)
 
 	// insert product and product_units records
-	// for _, p := range products {
-	// 	r := core.NewRecord(collection)
+	productsColection, err := app.FindCollectionByNameOrId(stocker.CollectionProducts)
+	if err != nil {
+		processSpreadsheetErrors(app, record, logger, err)
+		return
+	}
 
-	// 	// create map of record
-	// 	pmap := map[string]any{
-	// 		"name": p.Name,
+	productUnitsCollection, err := app.FindCollectionByNameOrId(stocker.CollectionProductUnits)
+	if err != nil {
+		processSpreadsheetErrors(app, record, logger, err)
+		return
+	}
 
-	// 	}
-	// }
+	// group product names by category
+	productsByCategory := make(map[string][]interface{}, len(categoriesMap))
+	for _, p := range products {
+		name := normalizeName(p.Name)
+		categoryId := categoriesMap[normalizeName(p.CategoryName)]
 
+		productsByCategory[categoryId] = append(productsByCategory[categoryId], name)
+	}
+
+	// get existing products for each category
+	existingProductsByCategory := make(map[string][]string)
+	for categoryId, names := range productsByCategory {
+		existingProducts, err := app.FindAllRecords(stocker.CollectionProducts, dbx.HashExp{
+			"categoryId": categoryId,
+			"name":       names,
+		})
+
+		if err != nil {
+			processSpreadsheetErrors(app, record, logger, err)
+			return
+		}
+
+		for _, existing := range existingProducts {
+			existingProductsByCategory[categoryId] = append(existingProductsByCategory[categoryId], normalizeName(existing.GetString("name")))
+		}
+	}
+
+	err = app.RunInTransaction(func(txApp core.App) error {
+		for _, p := range products {
+			name := normalizeName(p.Name)
+			categoryId := categoriesMap[normalizeName(p.CategoryName)]
+
+			if slices.Contains(existingProductsByCategory[categoryId], name) {
+				continue
+			}
+
+			r := core.NewRecord(productsColection)
+			r.Load(map[string]any{
+				"name":           name,
+				"description":    "",
+				"categoryId":     categoryId,
+				"providerId":     providersMap[normalizeName(p.ProviderName)],
+				"sku":            "sku-todo",
+				"unitCost":       p.UnitCost,
+				"totalCost":      p.TotalCost,
+				"cashPrice":      p.CashPrice,
+				"retailPrice":    p.RetailPrice,
+				"materialId":     materialsMap[normalizeName(p.Material)],
+				"clothingTypeId": clothingTypesMap[normalizeName(p.ClothingType)],
+			})
+
+			if err := txApp.Save(r); err != nil {
+				return fmt.Errorf("failed to save product '%s': %w", name, err)
+			}
+			productId := r.Id
+
+			for _, variant := range p.Variants {
+				rv := core.NewRecord(productUnitsCollection)
+				rv.Load(map[string]any{
+					"detail":    variant.Detail,
+					"productId": productId,
+					"colorId":   colorsMap[normalizeName(variant.ColorName)],
+					"sizeId":    sizesMap[normalizeName(variant.SizeName)],
+					"sku":       "todo",
+					"quantity":  variant.AvailableQty,
+				})
+
+				if err := txApp.Save(rv); err != nil {
+					return fmt.Errorf("failed to save variant for '%s': %w", name, err)
+				}
+			}
+		}
+
+		return err
+	})
+
+	if err != nil {
+		processSpreadsheetErrors(app, record, logger, err)
+		return
+	}
+
+	logger.Info("process completed succesfuly")
 	// update process state: 'completed'
+	record.Set("state", productSpreadsheetProcessStateCompleted)
+	if err := app.Save(record); err != nil {
+		processSpreadsheetErrors(app, record, logger, fmt.Errorf("failed to update process state (completed): %w", err))
+		return
+	}
 }
 
-func processSpreadsheetError(app core.App, record *core.Record, logger *slog.Logger, err error) {
-	errorMsg := err.Error()
-	logger.Error(errorMsg)
+func processSpreadsheetErrors(app core.App, record *core.Record, logger *slog.Logger, errors ...error) {
+	logMessages := make([]string, 0, len(errors)+1)
+	logMessages = append(logMessages, "process encountered errors:")
+	for _, e := range errors {
+		logMessages = append(logMessages, e.Error())
+	}
+		
+	logger.Error(strings.Join(logMessages, "\n"))
 
 	record.Set("state", productSpreadsheetProcessStateFailed)
 	// should't exceed len of 300:
-	record.Set("error", errorMsg)
+	// record.Set("error", errorMsg)
 
 	if err := app.Save(record); err != nil {
-		logger.Error("failed to set process error: %v", err)
+		logger.Error("failed to set process error: " + err.Error())
 	}
+
 }
+
+func insertRecord(name string, collection *core.Collection, app core.App) (string, error) {
+	if name == "" {
+		return name, errors.New("name cannot be blank") 
+	}
+	record := core.NewRecord(collection)
+	record.Set("name", name)
+
+	err := app.Save(record)
+	return record.Id, err
+}
+
+func getOrCreateRecords[T any](
+	app core.App,
+	collectionName string,
+	products []T,
+	nameAccessor func(T) string) (nameIdMap, error) {
+
+	records, err := app.FindAllRecords(collectionName)
+	if err != nil {
+		return nil, fmt.Errorf("%s query: %w", collectionName, err)
+	}
+
+	collection, err := app.FindCollectionByNameOrId(collectionName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve collection '%s': %w", collectionName, err)
+	}
+
+	// map has at least len(records) keys
+	m := make(nameIdMap, len(records))
+
+	for _, r := range records {
+		name := normalizeName(r.GetString("name"))
+		m[name] = r.Id
+	}
+
+	for _, p := range products {
+		name := normalizeName(nameAccessor(p))
+
+		if _, exists := m[name]; !exists {
+			id, err := insertRecord(name, collection, app)
+			if err != nil {
+				return nil, fmt.Errorf("(%s) failed to create record: %w", collectionName, err)
+			}
+
+			m[name] = id
+		}
+	}
+
+	return m, nil
+}
+
+func getOrCreateClothingTypes(
+	app core.App,
+	products []csv.ProductSheetDto,
+	categories nameIdMap,
+) (nameIdMap, error) {
+	collectionName := stocker.CollectionClothingTypes
+
+	records, err := app.FindAllRecords(collectionName)
+	if err != nil {
+		return nil, fmt.Errorf("%s query: %w", collectionName, err)
+	}
+
+	collection, err := app.FindCollectionByNameOrId(collectionName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve collection '%s': %w", collectionName, err)
+	}
+
+	// map has at least len(records) keys
+	m := make(nameIdMap, len(records))
+
+	for _, r := range records {
+		name := normalizeName(r.GetString("name"))
+		m[name] = r.Id
+	}
+
+	for _, p := range products {
+		name := normalizeName(p.ClothingType)
+
+		if _, exists := m[name]; !exists {
+			categoryId := categories[normalizeName(p.CategoryName)]
+			if categoryId == "" {
+				return nil, fmt.Errorf("category id not found for '%s'", p.CategoryName)
+			}
+
+			record := core.NewRecord(collection)
+			record.Set("name", name)
+			record.Set("categoryId", categoryId)
+
+			err := app.Save(record)
+			if err != nil {
+				return nil, fmt.Errorf("(%s) failed to create record: %w", stocker.CollectionClothingTypes, err)
+			}
+
+			m[name] = record.Id
+		}
+	}
+
+	return m, nil
+}
+
+var normalizeName = strings.ToLower
