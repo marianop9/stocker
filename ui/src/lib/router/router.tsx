@@ -15,6 +15,11 @@ import { movementsLoader } from "@/views/Movements/movementsLoader";
 import MovementDetailView from "@/views/Movements/MovementDetail/MovementDetailView";
 import movementDetailViewLoader from "@/views/Movements/MovementDetail/movementDetailViewLoader";
 import { movementDetailViewActions } from "@/views/Movements/MovementDetail/movementDetailViewActions";
+import SpreadsheetsView from "@/views/Spreadsheets/SpreadsheetsView";
+import {
+    spreadsheetActions,
+    spreadsheetsViewLoader,
+} from "@/views/Spreadsheets/spreadsheetsViewLoader";
 
 const router = createBrowserRouter([
     {
@@ -43,6 +48,12 @@ const router = createBrowserRouter([
                         path: "products/:id",
                         element: <ProductUnitView />,
                         loader: productUnitLoader,
+                    },
+                    {
+                        path: "products/spreadsheets",
+                        element: <SpreadsheetsView />,
+                        loader: spreadsheetsViewLoader,
+                        action: spreadsheetActions,
                     },
                     {
                         path: "admin",

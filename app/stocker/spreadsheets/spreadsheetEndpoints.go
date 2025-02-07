@@ -388,7 +388,7 @@ func processSpreadsheetErrors(app core.App, record *core.Record, logger *slog.Lo
 
 	record.Set("state", productSpreadsheetProcessStateFailed)
 	// should't exceed len of 300:
-	// record.Set("error", errorMsg)
+	record.Set("error", strings.Join(logMessages[1:], " "))
 
 	if err := app.Save(record); err != nil {
 		logger.Error("failed to set process error: " + err.Error())

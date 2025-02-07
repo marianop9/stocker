@@ -13,6 +13,7 @@ import {
     IStockMovementDto,
 } from "@/models/movements";
 import type { IProductUnitView, IProductDto, IProductView } from "@/models/products";
+import { IProductSpreadsheetProcessDto } from "@/models/spreadsheets";
 import IUser from "@/models/user";
 import Client, { RecordService } from "pocketbase";
 
@@ -43,6 +44,7 @@ class PocketBaseClient {
         action: string,
         body: any,
         method: HttpMethod = "POST",
+        headers?: Record<string, string>,
     ): Promise<T> {
         const url = `/api/custom/${module}/${action}`;
 
@@ -52,6 +54,7 @@ class PocketBaseClient {
         return await this.getInternalClient().send<T>(url, {
             body,
             method,
+            headers,
         });
         // try {
         //     return await this.getInternalClient().send<T>(url, {
@@ -126,6 +129,10 @@ class PocketBaseClient {
 
     get stockExitProductsView(): RecordService<IMovementDetailProductsDto> {
         return this.pb.collection("stock_exit_products_view");
+    }
+
+    get productSpreadsheetProcesses(): RecordService<IProductSpreadsheetProcessDto> {
+        return this.pb.collection("product_spreadsheet_processes");
     }
 }
 

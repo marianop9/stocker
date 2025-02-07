@@ -29,7 +29,7 @@ function ProductsView() {
                 </AppAlert>
             )}
 
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex justify-end items-center gap-4">
                 <AppDialog open={showProductForm} onOpenChange={setShowProductForm}>
                     <AppDialogTrigger asChild>
                         <Button onClick={() => setLastCreatedId("")}>Agregar producto</Button>
@@ -38,6 +38,8 @@ function ProductsView() {
                         <ProductForm afterSubmit={handleCreatedProduct} />
                     </AppDialogContent>
                 </AppDialog>
+
+                <AppLink label="Cargar planilla" route="spreadsheets" />
             </div>
 
             <ProductsDataTable products={products} />

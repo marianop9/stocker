@@ -29,5 +29,7 @@ export const formatDate = (d: string) => {
     return dayjs.utc(d).format("DD/MM/YY");
 };
 
+export const formatDateTime = (d: string) => dayjs.utc(d).format("DD/MM/YY HH:mm");
+
 export const formatCurrency = (p: number) =>
     Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(p);

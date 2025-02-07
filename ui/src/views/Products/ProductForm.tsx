@@ -1,8 +1,6 @@
 import AppFormEntry from "@/components/AppFormEntry";
 import { Input } from "@/components/ui/input";
 import AppSelect from "@/components/AppSelect";
-import { useService } from "@/service/useService";
-import { categoryService, providerService } from "@/service/administrationsService";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { z, ZodFormattedError } from "zod";
