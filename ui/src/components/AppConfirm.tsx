@@ -24,7 +24,7 @@ export default function AppConfirm({
 }: AppConfirmProps) {
     return (
         <AppDialogWrapper
-            dialogTitle={title ?? "Confirmar"}
+            dialogTitle={title ?? triggerLabel}
             triggerLabel={triggerLabel}
             triggerDisabled={triggerDisabled}
             triggerVariant={triggerVariant}

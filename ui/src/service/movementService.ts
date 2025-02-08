@@ -12,8 +12,8 @@ interface IMovementService {
     list(): Promise<ListResult<IMovementDto>>;
     get(id: string): Promise<IMovementDto>;
     create(entity: IMovementDto): Promise<ServiceResponse<IMovementDto>>;
-    close(id: string): Promise<CustomEndpointResponse>;
-    delete(id: string): Promise<CustomEndpointResponse>;
+    close(id: string): Promise<ServiceResponse<CustomEndpointResponse>>;
+    delete(id: string): Promise<ServiceResponse<CustomEndpointResponse>>;
 }
 
 export const movementService: IMovementService = {
@@ -32,11 +32,11 @@ export const movementService: IMovementService = {
     },
     close(id) {
         const promise = pbClient.callCustomEndpoint("movements", `${id}/close`, {}, "POST");
-        return promise;
+        return executeService(promise);
     },
     delete(id) {
         const promise = pbClient.callCustomEndpoint("movements", id, {}, "DELETE");
-        return promise;
+        return executeService(promise);
     },
 };
 

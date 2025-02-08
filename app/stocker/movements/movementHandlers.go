@@ -94,11 +94,6 @@ var handleCloseMovement stocker.StockerHandlerBuilder = func(app *stocker.Stocke
 			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseMessage("must provide a movement id"))
 		}
 
-		// collection, err := app.PbApp.Dao().FindCollectionByNameOrId(stocker.CollectionMovements)
-		// if err != nil {
-		// 	return err
-		// }
-
 		record, err := app.PbApp.FindRecordById(stocker.CollectionMovements, movementId)
 		if err != nil {
 			return e.JSON(http.StatusBadRequest, utils.NewErrorResponseMessage("no movements match the supplied id"))
@@ -248,36 +243,62 @@ func annullMovement(app *stocker.StockerApp, record *core.Record) error {
 	// revertir movimientos de stock
 	movType := record.GetString("type")
 
-	var childCollectionName string
+	var entries, exits []*core.Record
+
 	switch movType {
 	case MovementTypeIn:
-		childCollectionName = stocker.CollectionStockEntries
+		if entries, err = app.PbApp.FindAllRecords(
+			stocker.CollectionStockEntries,
+			dbx.HashExp{"movementId": record.Id},
+		); err != nil {
+			return err
+		}
+	case MovementTypeOut:
+		if exits, err = app.PbApp.FindAllRecords(
+			stocker.CollectionStockExits,
+			dbx.HashExp{"movementId": record.Id},
+		); err != nil {
+			return err
+		}
+	case MovementTypeExchange:
+		if entries, err = app.PbApp.FindAllRecords(
+			stocker.CollectionStockEntries,
+			dbx.HashExp{"movementId": record.Id},
+		); err != nil {
+			return err
+		}
+		if exits, err = app.PbApp.FindAllRecords(
+			stocker.CollectionStockExits,
+			dbx.HashExp{"movementId": record.Id},
+		); err != nil {
+			return err
+		}
 	default:
 		return errors.New(ErrTypeNotSupported)
 	}
 
-	// stock entries/exits
-	childRecords, err := app.PbApp.FindAllRecords(childCollectionName, dbx.HashExp{"movementId": record.Id})
-	if err != nil {
-		return err
-	}
-
 	err = app.PbApp.RunInTransaction(func(txApp core.App) error {
 		// each child holds the quantity to add/subtract for a single product_unit
-		for _, child := range childRecords {
-			productUnit, err := txApp.FindRecordById(stocker.CollectionProductUnits, child.GetString("productUnitId"))
+		for _, entry := range entries {
+			productUnit, err := txApp.FindRecordById(stocker.CollectionProductUnits, entry.GetString("productUnitId"))
 			if err != nil {
 				return err
 			}
 
-			switch movType {
-			case MovementTypeIn:
-				productUnit.Set("quantity-", child.GetInt("quantity"))
-			case MovementTypeOut:
-				productUnit.Set("quantity+", child.GetInt("quantity"))
-			default:
-				return errors.New("Movement annulation not implemented for type " + movType)
+			productUnit.Set("quantity-", entry.GetInt("quantity"))
+
+			if err := txApp.Save(productUnit); err != nil {
+				return err
 			}
+		}
+
+		for _, exit := range exits {
+			productUnit, err := txApp.FindRecordById(stocker.CollectionProductUnits, exit.GetString("productUnitId"))
+			if err != nil {
+				return err
+			}
+
+			productUnit.Set("quantity+", exit.GetInt("quantity"))
 
 			if err := txApp.Save(productUnit); err != nil {
 				return err

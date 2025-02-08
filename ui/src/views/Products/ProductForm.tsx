@@ -118,6 +118,8 @@ function ProductForm({ product, afterSubmit }: Props) {
             return;
         }
 
+        data.sku = "sku-todo";
+
         const method = isUpdate ? "PUT" : "POST";
         fetcher.submit(data, { action: "/products", method, encType: "multipart/form-data" });
         /* use router fetcher to automatically revalidate data from loader
