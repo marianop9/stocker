@@ -1,4 +1,9 @@
-import { IMovementDetailProductsView, IStockMovementDto, MovementType } from "@/models/movements";
+import {
+    IMovementDetailProductsView,
+    IMovementDto,
+    IStockMovementDto,
+    MovementType,
+} from "@/models/movements";
 import { stockEntryService, stockExitService } from "@/service/movementService";
 import { CustomEndpointResponse } from "@/service/pocketbase";
 import { useMutation, UseMutationResult, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +16,8 @@ export type MovementProductsType = {
 };
 
 type MovementDetailContextType = {
+    movementType: MovementType;
+    movement: IMovementDto;
     movementProducts: MovementProductsType;
     createStockMovementMutation: UseMutationResult<
         CustomEndpointResponse,
@@ -32,14 +39,15 @@ type MovementDetailContextType = {
 const movementDetailContext = createContext<MovementDetailContextType | undefined>(undefined);
 
 export function MovementDetailContextProvider({
-    movementId,
-    movementType,
+    movement,
     children,
 }: {
-    movementId: string;
-    movementType: MovementType;
+    movement: IMovementDto;
     children: ReactNode;
 }) {
+    const movementId = movement.id;
+    const movementType = movement.type;
+
     const queryKey = ["movement-detail-products", movementId];
 
     const isStockEntry = movementType === "IN";
@@ -117,25 +125,49 @@ export function MovementDetailContextProvider({
             // retrieve deleted id
             const { productId, movementDetailId } = variables;
             // manually update query data
-            queryClient.setQueryData(queryKey, (prev: IMovementDetailProductsView[]) =>
-                prev.map((p) => {
-                    if (p.productId === productId) {
+            queryClient.setQueryData(queryKey, (prev: MovementProductsType) => {
+                switch (movementType) {
+                    case "IN":
                         return {
-                            ...p,
-                            units: p.units.filter(
-                                (unit) => unit.movementDetailId !== movementDetailId,
+                            ...prev,
+                            entries: removeMovementDetailUnit(
+                                prev.entries,
+                                productId,
+                                movementDetailId,
                             ),
                         };
-                    }
-                    return p;
-                }),
-            );
+                    case "OUT":
+                        return {
+                            ...prev,
+                            exits: removeMovementDetailUnit(
+                                prev.exits,
+                                productId,
+                                movementDetailId,
+                            ),
+                        };
+                    case "EXCHANGE":
+                        return {
+                            entries: removeMovementDetailUnit(
+                                prev.entries,
+                                productId,
+                                movementDetailId,
+                            ),
+                            exits: removeMovementDetailUnit(
+                                prev.exits,
+                                productId,
+                                movementDetailId,
+                            ),
+                        };
+                }
+            });
         },
     });
 
     return (
         <movementDetailContext.Provider
             value={{
+                movementType,
+                movement,
                 movementProducts: data,
                 createStockMovementMutation,
                 updateStockMovementMutation,
@@ -157,4 +189,26 @@ export function useMovementDetailContext() {
     }
 
     return context;
+}
+
+// removes the unit corresponding to <movDetailId> for the given productId in the IMovementDetailProductsView array
+function removeMovementDetailUnit(
+    movementDetailProducts: IMovementDetailProductsView[],
+    productId: string,
+    movementDetailId: string,
+): IMovementDetailProductsView[] {
+    const afterRemoveDetail = movementDetailProducts.map((movDetProd) => {
+        if (movDetProd.productId === productId) {
+            return {
+                ...movDetProd,
+                units: movDetProd.units.filter(
+                    (unit) => unit.movementDetailId !== movementDetailId,
+                ),
+            };
+        }
+        return movDetProd;
+    });
+
+    // remove movement products with empty units
+    return afterRemoveDetail.filter((movDetProd) => movDetProd.units.length > 0);
 }

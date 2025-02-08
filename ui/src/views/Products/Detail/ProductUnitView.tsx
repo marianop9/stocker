@@ -4,24 +4,16 @@ import ProductForm from "../ProductForm";
 import { AppDialog, AppDialogTrigger, AppDialogContent } from "@/components/AppDialog";
 import { Button } from "@/components/ui/button";
 import { useParams } from "react-router-dom";
-import { PropsWithChildren, ReactNode, useState } from "react";
+import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { IProductUnitView } from "@/models/products";
 import { AppDataTable } from "@/components/AppDataTable";
-import ProductUnitForm from "./ProductUnitForm";
 import { useProductUnitsListService } from "@/lib/hooks/useProductUnitsService";
 import AppBackNavButton from "@/components/AppBackNavButton";
-import { AppControlledDialogWrapper } from "@/components/AppDialogWrapper";
 import { Checkbox } from "@/components/ui/checkbox";
-import AppFormEntry from "@/components/AppFormEntry";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/formatters";
-
-const currencyFmt = Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-});
+import AppLabel from "@/components/AppLabel";
 
 function ProductUnitView() {
     const [productDialogOpen, setProductDialogOpen] = useState(false);
@@ -29,11 +21,11 @@ function ProductUnitView() {
 
     const [hideUnavailableVariants, setHideUnavailableVariants] = useState(false);
 
-    const product = useAppRouterLoaderData(productUnitLoader);
+    const { product, units: details } = useAppRouterLoaderData(productUnitLoader);
     const routeParams = useParams();
-    const productId = routeParams["id"]!;
+    // const productId = routeParams["id"]!;
 
-    const { data: details = [], invalidate } = useProductUnitsListService(productId);
+    // const { data: details = [], invalidate } = useProductUnitsListService(productId);
 
     const handleUpdatedProduct = () => {
         // product is revalidated automatically by the loader
@@ -41,7 +33,7 @@ function ProductUnitView() {
     };
 
     function handleUnitsCreated() {
-        invalidate();
+        // invalidate();
         setUnitsDialogOpen(false);
     }
 
@@ -135,10 +127,12 @@ const productDetailsColumns: ColumnDef<IProductUnitView>[] = [
     {
         header: "Color",
         accessorKey: "colorName",
+        enableColumnFilter: false,
     },
     {
         header: "Talle",
         accessorKey: "sizeName",
+        enableColumnFilter: false,
     },
     {
         header: "Cantidad",
@@ -148,17 +142,3 @@ const productDetailsColumns: ColumnDef<IProductUnitView>[] = [
 ];
 
 export default ProductUnitView;
-
-interface AppLabelProps extends PropsWithChildren {
-    label: string;
-    className?: string;
-}
-
-function AppLabel({ label, className, children }: AppLabelProps) {
-    return (
-        <div className={`flex flex-col gap-2 mb-2 justify-between ${className ?? ""}`}>
-            <Label className="text-muted-foreground">{label}</Label>
-            {children}
-        </div>
-    );
-}

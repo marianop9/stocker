@@ -1,15 +1,16 @@
 import { PropsWithChildren } from "react";
 import { AppDialog, AppDialogContent, AppDialogTrigger } from "./AppDialog";
-import { Button } from "./ui/button";
+import { Button, ButtonSize, ButtonVariant } from "./ui/button";
 import ControlledComponent from "@/lib/contracts/ControlledComponent";
 
-export type ButtonVariants = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+// export type ButtonVariants = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 interface AppDialogWrapperProps extends PropsWithChildren {
     dialogTitle: string;
     dialogDescription?: string;
     triggerLabel: string;
     triggerDisabled?: boolean;
-    triggerVariant?: ButtonVariants;
+    triggerVariant?: ButtonVariant;
+    triggerSize?: ButtonSize;
 }
 
 export default function AppDialogWrapper({
@@ -18,12 +19,13 @@ export default function AppDialogWrapper({
     triggerLabel,
     triggerDisabled = false,
     triggerVariant,
+    triggerSize = "default",
     children,
 }: AppDialogWrapperProps) {
     return (
         <AppDialog>
             <AppDialogTrigger asChild>
-                <Button variant={triggerVariant} disabled={triggerDisabled}>
+                <Button variant={triggerVariant} size={triggerSize} disabled={triggerDisabled}>
                     {triggerLabel}
                 </Button>
             </AppDialogTrigger>
@@ -38,7 +40,7 @@ interface AppControlledDialogWrapperProps extends PropsWithChildren, ControlledC
     dialogTitle: string;
     triggerLabel?: string;
     triggerDisabled?: boolean;
-    triggerVariant?: ButtonVariants;
+    triggerVariant?: ButtonVariant;
 }
 
 export function AppControlledDialogWrapper({

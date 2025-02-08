@@ -13,6 +13,9 @@ import { useMovementDetailContext } from "../movementDetailContext";
 import AppAlert from "@/components/AppAlert";
 import { Label } from "@/components/ui/label";
 import AppColorDisplay from "@/components/AppColorDisplay";
+import { formatCurrency } from "@/lib/formatters";
+import AppLabel from "@/components/AppLabel";
+import { Eye, EyeOff } from "lucide-react";
 
 interface MovementAddProductsFormProps {
     movement: IMovementDto;
@@ -26,10 +29,14 @@ export default function MovementAddProductsForm({
     onProductAdded,
 }: MovementAddProductsFormProps) {
     const isExchange = movement.type === "EXCHANGE";
+    const isEntry = movement.type === "IN";
+    const isExit = movement.type === "OUT";
 
     const [isReturn, setIsReturn] = useState(false);
     const [quantity, setQuantity] = useState("");
     const [quantityValidation, setQuantityValidation] = useState("");
+
+    const [showCost, setShowCost] = useState(() => isEntry);
 
     const [selectedRows, setSelectedRows] = useState<RowSelectionState>({});
     const [selectedRowsValidation, setSelectedRowsValidation] = useState("");
@@ -67,6 +74,19 @@ export default function MovementAddProductsForm({
             setSelectedRowsValidation("Seleccione al menos una unidad.");
             return;
         }
+
+        // validar que la cantidad de salida no supere la cantidad disponible
+        if (isExit || (isExchange && !isReturn))
+            for (const unitId of selectedUnitIds) {
+                const unit = productUnits.find((u) => u.id === unitId)!;
+
+                if (unit.quantity < qty) {
+                    setSelectedRowsValidation(
+                        `Una de las unidades seleccionadas no tiene cantidad disponible suficiente (${unit.quantity}).`,
+                    );
+                    return;
+                }
+            }
 
         const stockMovements: IStockMovementDto = {
             id: "",
@@ -129,14 +149,16 @@ export default function MovementAddProductsForm({
                             hexcode={row.original.colorHexcode}
                         />
                     ),
+                    enableColumnFilter: false,
                 },
                 {
                     accessorKey: "sizeName",
                     header: "Talle",
+                    enableColumnFilter: false,
                 },
                 {
                     id: "stockEntryQty",
-                    header: "Cantidad",
+                    header: "Cant. movimiento",
                     enableColumnFilter: false,
                     cell: ({ row }) => (
                         <span>
@@ -146,6 +168,11 @@ export default function MovementAddProductsForm({
                         </span>
                     ),
                     footer: () => <Button>Agregar variantes</Button>,
+                },
+                {
+                    header: "Cant. disponible",
+                    accessorKey: "quantity",
+                    enableColumnFilter: false,
                 },
             ] as ColumnDef<IProductUnitView>[],
         [productUnits, selectedMovementProduct],
@@ -158,20 +185,52 @@ export default function MovementAddProductsForm({
                     <div className="p-4 top-0 sticky bg-background z-10">
                     </div> 
                 */}
-                <div className="flex justify-between mb-4">
-                    <AppFormEntry label="Producto" name="" readonly>
-                        <div>{product.name}</div>
-                    </AppFormEntry>
-                    <AppFormEntry label="Categoria / Proveedor" name="" readonly>
-                        {product.categoryName} / {product.providerName}
-                    </AppFormEntry>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                    <AppFormEntry label="Precio" name="price" className="w-1/3" readonly>
-                        {product.price}
-                    </AppFormEntry>
+                <div className="flex justify-between mb-4"></div>
+                <div className="grid grid-cols-2 gap-2">
+                    <AppLabel label="Producto">
+                        <Label>{product.name.toUpperCase()}</Label>
+                    </AppLabel>
+                    <AppLabel label="Categoria">
+                        <Label>{product.categoryName}</Label>
+                    </AppLabel>
+                    <AppLabel label="Proveedor">
+                        <Label>{product.providerName}</Label>
+                    </AppLabel>
 
-                    <div className="flex items-center space-x-1 col-start-3">
+                    <AppLabel label="Tipo de prenda">
+                        <Label>{product.clothingTypeName}</Label>
+                    </AppLabel>
+                    <AppLabel label="Material">
+                        <Label>{product.materialName}</Label>
+                    </AppLabel>
+
+                    <AppLabel label="Costo">
+                        <div className="flex items-center">
+                            <Label className="mr-2">
+                                {showCost
+                                    ? formatCurrency(product.totalCost)
+                                    : redact(product.totalCost)}
+                            </Label>
+                            {!isEntry && (
+                                <Button
+                                    variant="ghost"
+                                    className="p-0 h-4"
+                                    onClick={() => setShowCost(!showCost)}
+                                >
+                                    {showCost ? <EyeOff size="1em" /> : <Eye size="1em" />}
+                                </Button>
+                            )}
+                        </div>
+                    </AppLabel>
+
+                    <AppLabel label="Precio contado">
+                        <Label>{formatCurrency(product.cashPrice)}</Label>
+                    </AppLabel>
+                    <AppLabel label="Precio lista">
+                        <Label>{formatCurrency(product.retailPrice)}</Label>
+                    </AppLabel>
+
+                    <div className="flex items-center space-x-1">
                         {isExchange && (
                             <>
                                 <Checkbox
@@ -205,9 +264,6 @@ export default function MovementAddProductsForm({
                     onRowSelectionChange={setSelectedRows}
                 />
                 <AppFormValidationMessage message={selectedRowsValidation} />
-                <AppAlert variant="error">
-                    <p>{serverError}</p>
-                </AppAlert>
 
                 <AppDialogFooter className="flex justify-end">
                     <Button onClick={handleSave}>Agregar</Button>
@@ -215,4 +271,8 @@ export default function MovementAddProductsForm({
             </>
         )
     );
+}
+
+function redact(x: Object) {
+    return "*".repeat(x.toString().length);
 }

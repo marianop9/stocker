@@ -57,6 +57,7 @@ export const productService: IProductSerivce = {
 interface IProductUnitService {
     list(productId: string): Promise<IProductUnitView[]>;
     createBatch(dtos: IProductUnitDto[]): Promise<ServiceResponse<any>>;
+    getAvailableQuantity(id: string): Promise<number>;
 }
 
 export const productUnitService: IProductUnitService = {
@@ -69,5 +70,14 @@ export const productUnitService: IProductUnitService = {
         const promise = pbClient.callCustomEndpoint("productUnits", "createBatch", dtos);
 
         return executeService(promise);
+    },
+    async getAvailableQuantity(id: string) {
+        await new Promise((res) => setTimeout(res, 3000));
+
+        const result = await pbClient.productUnitsView.getOne(id, {
+            fields: "quantity",
+        });
+
+        return result.quantity;
     },
 };

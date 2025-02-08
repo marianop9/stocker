@@ -77,8 +77,10 @@ export const stockEntryService: IStockMovementService = {
                     movementType: "IN",
                     productId: dto.productId,
                     name: dto.name,
-                    cost: dto.cost,
-                    price: dto.price,
+                    unitCost: dto.unitCost,
+                    totalCost: dto.totalCost,
+                    cashPrice: dto.cashPrice,
+                    retailPrice: dto.retailPrice,
                     units: [
                         {
                             movementDetailId: dto.stockEntryId,
@@ -146,8 +148,10 @@ export const stockExitService: IStockMovementService = {
                     movementType: "OUT",
                     productId: dto.productId,
                     name: dto.name,
-                    cost: dto.cost,
-                    price: dto.price,
+                    unitCost: dto.unitCost,
+                    totalCost: dto.totalCost,
+                    cashPrice: dto.cashPrice,
+                    retailPrice: dto.retailPrice,
                     units: [
                         {
                             movementDetailId: dto.stockExitId,

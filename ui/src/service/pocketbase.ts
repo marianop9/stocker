@@ -123,7 +123,7 @@ class PocketBaseClient {
         return this.pb.collection("movements");
     }
 
-    get stockEntryProductsView(): RecordService<IStockEntryProductDto> {
+    get stockEntryProductsView(): RecordService<IMovementDetailProductsDto> {
         return this.pb.collection("stock_entry_products_view");
     }
 

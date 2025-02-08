@@ -4,25 +4,36 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { IMovementDetailProductsView, MovementType } from "@/models/movements";
+import { IMovementDetailProductsView } from "@/models/movements";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/formatters";
 import AppColorDisplay from "@/components/AppColorDisplay";
 import AppConfirm from "@/components/AppConfirm";
 import StockMovementEditProductDialog from "./MovementEditProductDialog";
+import { useMovementDetailContext } from "../movementDetailContext";
 
 interface Props {
-    movementType: MovementType;
+    // indica si los productos son entradas o salidas
+    // un movimiento de salida solo tiene salidas, pero un cambio tiene entradas Y salidas
+    areProductsOutgoing: boolean;
     movementProducts: IMovementDetailProductsView[];
     onDelete: (productId: string, movementDetailId: string) => void;
 }
 
-export default function ProductDetailList({ movementType, movementProducts, onDelete }: Props) {
+export default function ProductDetailList({
+    areProductsOutgoing,
+    movementProducts,
+    onDelete,
+}: Props) {
+    const { movementType, movement } = useMovementDetailContext();
+
     const isStockEntry = movementType === "IN";
+
+    const canEditMovement = movement.state === "OPEN";
 
     function productSubtotal(product: IMovementDetailProductsView) {
         const subtotal = product.units
-            .map((p) => p.quantity * (isStockEntry ? product.cost : product.price))
+            .map((p) => p.quantity * (isStockEntry ? product.totalCost : product.retailPrice))
             .reduce((total, val) => total + val, 0);
 
         return subtotal;
@@ -54,7 +65,7 @@ export default function ProductDetailList({ movementType, movementProducts, onDe
                                     <td className="p-2">Talle</td>
                                     <td className="p-2">Cantidad</td>
                                     <td className="p-2">
-                                        {isStockEntry ? "Costo" : "Precio"} unitario
+                                        {isStockEntry ? "Costo total" : "Precio lista"}
                                     </td>
                                     <td></td>
                                 </tr>
@@ -74,36 +85,44 @@ export default function ProductDetailList({ movementType, movementProducts, onDe
                                         <td className="p-2">{unit.quantity}</td>
                                         <td className="p-2">
                                             {formatCurrency(
-                                                isStockEntry ? movProduct.cost : movProduct.price,
+                                                isStockEntry
+                                                    ? movProduct.totalCost
+                                                    : movProduct.retailPrice,
                                             )}
                                         </td>
-                                        <td className="py-2 flex">
-                                            <StockMovementEditProductDialog
-                                                product={movProduct}
-                                                unitIdx={unitIdx}
-                                            />
-                                            <AppConfirm
-                                                title="Eliminar entrada"
-                                                triggerLabel="Eliminar"
-                                                triggerVariant="link"
-                                                onConfirm={() =>
-                                                    handleDelete(
-                                                        movProduct.productId,
-                                                        unit.movementDetailId,
-                                                    )
-                                                }
-                                            >
-                                                <div className="flex justify-around items-center mb-4">
-                                                    <h3 className=" font-medium">
-                                                        {movProduct.name}
-                                                    </h3>
-                                                    <AppColorDisplay
-                                                        name={unit.colorName}
-                                                        hexcode={unit.colorHexcode}
+                                        <td className="py-2 flex gap-x-2">
+                                            {canEditMovement && (
+                                                <>
+                                                    <StockMovementEditProductDialog
+                                                        product={movProduct}
+                                                        unitIdx={unitIdx}
+                                                        isProductOutgoing={areProductsOutgoing}
                                                     />
-                                                    <SizeBadge size={unit.sizeName} />
-                                                </div>
-                                            </AppConfirm>
+                                                    <AppConfirm
+                                                        title="Eliminar entrada"
+                                                        triggerLabel="Eliminar"
+                                                        triggerVariant="link"
+                                                        triggerSize="noPad"
+                                                        onConfirm={() =>
+                                                            handleDelete(
+                                                                movProduct.productId,
+                                                                unit.movementDetailId,
+                                                            )
+                                                        }
+                                                    >
+                                                        <div className="flex justify-around items-center mb-4">
+                                                            <h3 className=" font-medium">
+                                                                {movProduct.name}
+                                                            </h3>
+                                                            <AppColorDisplay
+                                                                name={unit.colorName}
+                                                                hexcode={unit.colorHexcode}
+                                                            />
+                                                            <SizeBadge size={unit.sizeName} />
+                                                        </div>
+                                                    </AppConfirm>
+                                                </>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

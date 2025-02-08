@@ -1,4 +1,4 @@
-export default function AppColorDisplay({ name, hexcode }: { name: string; hexcode: string }) {
+export default function AppColorDisplay({ name, hexcode }: { name: string; hexcode?: string }) {
     return (
         <div className="flex items-center gap-2 ">
             <span>{name}</span>

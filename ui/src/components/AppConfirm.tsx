@@ -1,14 +1,15 @@
 import { PropsWithChildren } from "react";
 import { AppDialogFooter } from "./AppDialog";
-import { Button } from "./ui/button";
-import AppDialogWrapper, { ButtonVariants } from "./AppDialogWrapper";
+import { Button, type ButtonSize, type ButtonVariant } from "./ui/button";
+import AppDialogWrapper from "./AppDialogWrapper";
 import { DialogClose } from "@radix-ui/react-dialog";
 
 interface AppConfirmProps extends PropsWithChildren {
     title?: string;
     triggerLabel: string;
     triggerDisabled?: boolean;
-    triggerVariant?: ButtonVariants;
+    triggerVariant?: ButtonVariant;
+    triggerSize?: ButtonSize;
     onConfirm: () => void;
 }
 
@@ -17,6 +18,7 @@ export default function AppConfirm({
     triggerLabel,
     triggerDisabled,
     triggerVariant,
+    triggerSize,
     onConfirm,
     children,
 }: AppConfirmProps) {
@@ -26,11 +28,14 @@ export default function AppConfirm({
             triggerLabel={triggerLabel}
             triggerDisabled={triggerDisabled}
             triggerVariant={triggerVariant}
+            triggerSize={triggerSize}
         >
             {children}
             <AppDialogFooter className="mt-4">
                 <DialogClose asChild>
-                    <Button variant="ghost">Cancelar</Button>
+                    <Button variant="ghost" size="noPad">
+                        Cancelar
+                    </Button>
                 </DialogClose>
                 <DialogClose asChild>
                     <Button onClick={onConfirm}>Confirmar</Button>

@@ -60,10 +60,12 @@ export interface IMovementDetailProductsDto {
     quantity: number;
     productId: string;
     name: string;
-    cost: number;
-    price: number;
+    unitCost: number;
+    totalCost: number;
+    cashPrice: number;
+    retailPrice: number;
     colorName: string;
-    colorHexcode: string;
+    colorHexcode?: string;
     sizeName: string;
 }
 
@@ -72,14 +74,16 @@ export interface IMovementDetailProductsView {
     movementType: MovementType;
     productId: string;
     name: string;
-    cost: number;
-    price: number;
+    unitCost: number;
+    totalCost: number;
+    cashPrice: number;
+    retailPrice: number;
     units: {
         movementDetailId: string; // stock entry/exit
         quantity: number;
         productUnitId: string;
         colorName: string;
-        colorHexcode: string;
+        colorHexcode?: string;
         sizeName: string;
     }[];
 }

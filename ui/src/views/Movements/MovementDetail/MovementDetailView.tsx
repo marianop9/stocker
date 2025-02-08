@@ -48,7 +48,7 @@ export default function MovementDetailView() {
                 </AppAlert>
             )}
 
-            <MovementDetailContextProvider movementId={movement.id} movementType={movement.type}>
+            <MovementDetailContextProvider movement={movement}>
                 <div className="flex">
                     <div className="w-2/3">
                         <MovementOverview movement={movement} />
