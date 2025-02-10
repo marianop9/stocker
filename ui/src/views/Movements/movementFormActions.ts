@@ -53,7 +53,7 @@ const deleteMovementAction: ActionFunction = async ({ request }) => {
 
     const resp = await movementService.delete(id as string);
     if (!resp.success) {
-        console.log(resp.message);
+        console.log(resp.error.message);
     }
 
     return resp;

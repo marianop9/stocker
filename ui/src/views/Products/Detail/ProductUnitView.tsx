@@ -3,12 +3,10 @@ import { productUnitLoader } from "./productUnitLoader";
 import ProductForm from "../ProductForm";
 import { AppDialog, AppDialogTrigger, AppDialogContent } from "@/components/AppDialog";
 import { Button } from "@/components/ui/button";
-import { useParams } from "react-router-dom";
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { IProductUnitView } from "@/models/products";
 import { AppDataTable } from "@/components/AppDataTable";
-import { useProductUnitsListService } from "@/lib/hooks/useProductUnitsService";
 import AppBackNavButton from "@/components/AppBackNavButton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -17,12 +15,12 @@ import AppLabel from "@/components/AppLabel";
 
 function ProductUnitView() {
     const [productDialogOpen, setProductDialogOpen] = useState(false);
-    const [unitsDialogOpen, setUnitsDialogOpen] = useState(false);
+    // const [unitsDialogOpen, setUnitsDialogOpen] = useState(false);
 
     const [hideUnavailableVariants, setHideUnavailableVariants] = useState(false);
 
     const { product, units: details } = useAppRouterLoaderData(productUnitLoader);
-    const routeParams = useParams();
+    // const routeParams = useParams();
     // const productId = routeParams["id"]!;
 
     // const { data: details = [], invalidate } = useProductUnitsListService(productId);
@@ -32,10 +30,10 @@ function ProductUnitView() {
         setProductDialogOpen(false);
     };
 
-    function handleUnitsCreated() {
-        // invalidate();
-        setUnitsDialogOpen(false);
-    }
+    // function handleUnitsCreated() {
+    //     // invalidate();
+    //     setUnitsDialogOpen(false);
+    // }
 
     return (
         <>
