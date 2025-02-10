@@ -11,7 +11,7 @@ import (
 )
 
 var defaultMiddleware []*hook.Handler[*core.RequestEvent] = []*hook.Handler[*core.RequestEvent]{
-	apis.RequireAuth("users"),
+	apis.RequireAuth("_superusers", "users"),
 }
 
 type StockerApp struct {

@@ -1,0 +1,15 @@
+{
+    "superusers": [
+        {
+            "email": "perezm7401@gmail.com",
+            "password": "Alemania2012"
+        }
+    ],
+    "users": [
+        {
+            "email": "user@stocker.com",
+            "username": "mariano",
+            "password": "Alemania2012"
+        }
+    ]
+}
