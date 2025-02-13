@@ -13,13 +13,17 @@ import MovementAddProductsForm from "./components/MovementAddProductsForm";
 import { CustomEndpointResponse } from "@/service/pocketbase";
 import AppAlert from "@/components/AppAlert";
 import AppConfirm from "@/components/AppConfirm";
+import { AppDialog, AppDialogContent, AppDialogTrigger } from "@/components/AppDialog";
+import { Button } from "@/components/ui/button";
+import MovementForm from "../MovementForm";
 
 export default function MovementDetailView() {
     const movement = useLoaderData() as IMovementDto;
 
-    const canClose = movement.state === "OPEN";
+    const isMovementOpen = movement.state === "OPEN";
     const canDelete = movement.state === "OPEN" || movement.state === "CLOSED";
 
+    const [isEditMovementDialogOpen, setIsEditMovementDialogOpen] = useState(false);
     const [isAddProductsDialogOpen, setIsAddProductsDialogOpen] = useState(false);
     const [selecetedProduct, setSelectedProduct] = useState<IProductView | null>(null);
 
@@ -62,6 +66,25 @@ export default function MovementDetailView() {
                     </div>
                     <div className="flex-grow">
                         <div className="flex flex-col h-full gap-2 items-end">
+                            {isMovementOpen && (
+                                <AppDialog
+                                    open={isEditMovementDialogOpen}
+                                    onOpenChange={setIsEditMovementDialogOpen}
+                                >
+                                    <AppDialogTrigger asChild>
+                                        <Button>Editar movimiento</Button>
+                                    </AppDialogTrigger>
+                                    <AppDialogContent title="Editar movimiento">
+                                        <MovementForm
+                                            movement={movement}
+                                            onSubmitted={() => {
+                                                console.log("submitted");
+                                                setIsEditMovementDialogOpen(false);
+                                            }}
+                                        />
+                                    </AppDialogContent>
+                                </AppDialog>
+                            )}
                             {canDelete && (
                                 <AppConfirm
                                     onConfirm={deleteMovement}
@@ -76,7 +99,7 @@ export default function MovementDetailView() {
                                     movimiento
                                 </AppConfirm>
                             )}
-                            {canClose && (
+                            {isMovementOpen && (
                                 <MovementCloseConfirm
                                     movement={movement}
                                     onConfirm={closeMovement}

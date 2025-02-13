@@ -8,7 +8,7 @@ interface AppLabelProps extends PropsWithChildren {
 
 export default function AppLabel({ label, className, children }: AppLabelProps) {
     return (
-        <div className={`flex flex-col gap-2 mb-2 justify-between ${className ?? ""}`}>
+        <div className={`flex flex-col gap-2 mb-2  ${className ?? ""}`}>
             <Label className="text-muted-foreground">{label}</Label>
             {children}
         </div>

@@ -73,11 +73,10 @@ const AppSelect = forwardRef<HTMLButtonElement, Props>(
             <Select
                 name={name}
                 defaultValue={defaultValue}
-                disabled={disabled}
                 value={value}
                 onValueChange={onValueChange}
             >
-                <SelectTrigger onBlur={onBlur} ref={forwardedRef}>
+                <SelectTrigger onBlur={onBlur} ref={forwardedRef} disabled={disabled}>
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent>

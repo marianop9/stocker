@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/accordion";
 import { IMovementDetailProductsView } from "@/models/movements";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
 import AppColorDisplay from "@/components/AppColorDisplay";
 import AppConfirm from "@/components/AppConfirm";
 import StockMovementEditProductDialog from "./MovementEditProductDialog";
@@ -28,12 +28,19 @@ export default function ProductDetailList({
     const { movementType, movement } = useMovementDetailContext();
 
     const isStockEntry = movementType === "IN";
+    const isCashPayment = movement.paymentType === "CASH";
 
     const canEditMovement = movement.state === "OPEN";
 
     function productSubtotal(product: IMovementDetailProductsView) {
+        if (isStockEntry) {
+            return product.units
+                .map((p) => p.quantity * product.totalCost)
+                .reduce((total, val) => total + val, 0);
+        }
+
         const subtotal = product.units
-            .map((p) => p.quantity * (isStockEntry ? product.totalCost : product.retailPrice))
+            .map((p) => p.quantity * getFinalPrice(product))
             .reduce((total, val) => total + val, 0);
 
         return subtotal;
@@ -41,6 +48,20 @@ export default function ProductDetailList({
 
     async function handleDelete(productId: string, movementDetailId: string) {
         onDelete(productId, movementDetailId);
+    }
+
+    function getFinalPrice(movProduct: IMovementDetailProductsView): number {
+        if (isStockEntry) return 0;
+
+        const cashPrice = movProduct.cashPrice;
+        const retailPrice = movProduct.retailPrice;
+        if (isCashPayment) return cashPrice;
+
+        if (movement.paymentType === "PROMO") {
+            return retailPrice - (retailPrice * movement.discount) / 100;
+        }
+
+        return retailPrice;
     }
 
     return (
@@ -57,16 +78,23 @@ export default function ProductDetailList({
                             </Badge>
                         </span>
                     </AccordionTrigger>
-                    <AccordionContent className="overflow-x-scroll">
-                        <table className="table-fixed w-full border">
-                            <thead className="bg-muted">
+                    <AccordionContent className="relative overflow-x-scroll">
+                        <table className="table-auto w-full border text-sm">
+                            <thead className="bg-muted text-xs">
                                 <tr>
                                     <td className="p-2">Color</td>
                                     <td className="p-2">Talle</td>
                                     <td className="p-2">Cantidad</td>
-                                    <td className="p-2">
-                                        {isStockEntry ? "Costo total" : "Precio lista"}
-                                    </td>
+                                    {isStockEntry && <td className="p-2">Costo total</td>}
+                                    {!isStockEntry && (
+                                        <>
+                                            <td className="p-2">
+                                                Precio {isCashPayment ? "contado" : "lista"}
+                                            </td>
+                                            <td className="p-2">Descuento</td>
+                                            <td className="p-2">Precio final</td>
+                                        </>
+                                    )}
                                     <td></td>
                                 </tr>
                             </thead>
@@ -83,13 +111,28 @@ export default function ProductDetailList({
                                             <SizeBadge size={unit.sizeName} />
                                         </td>
                                         <td className="p-2">{unit.quantity}</td>
-                                        <td className="p-2">
-                                            {formatCurrency(
-                                                isStockEntry
-                                                    ? movProduct.totalCost
-                                                    : movProduct.retailPrice,
-                                            )}
-                                        </td>
+                                        {isStockEntry && (
+                                            <td className="p-2">
+                                                {formatCurrency(movProduct.totalCost)}
+                                            </td>
+                                        )}
+                                        {!isStockEntry && (
+                                            <>
+                                                <td className="p-2">
+                                                    {formatCurrency(
+                                                        isCashPayment
+                                                            ? movProduct.cashPrice
+                                                            : movProduct.retailPrice,
+                                                    )}
+                                                </td>
+                                                <td className="p-2">
+                                                    {formatPercent(movement.discount)}
+                                                </td>
+                                                <td className="p-2">
+                                                    {formatCurrency(getFinalPrice(movProduct))}
+                                                </td>
+                                            </>
+                                        )}
                                         <td className="py-2 flex gap-x-2">
                                             {canEditMovement && (
                                                 <>
@@ -127,9 +170,9 @@ export default function ProductDetailList({
                                     </tr>
                                 ))}
                             </tbody>
-                            <tfoot className="bg-muted">
+                            <tfoot className="bg-muted text-xs">
                                 <tr>
-                                    <td className="p-2">Totales</td>
+                                    <td className="p-2">Subtotal</td>
                                     <td></td>
                                     <td className="p-2">
                                         {movProduct.units.reduce(
@@ -137,9 +180,20 @@ export default function ProductDetailList({
                                             0,
                                         )}
                                     </td>
-                                    <td className="p-2">
-                                        {formatCurrency(productSubtotal(movProduct))}
-                                    </td>
+                                    {isStockEntry && (
+                                        <td className="p-2">
+                                            {formatCurrency(productSubtotal(movProduct))}
+                                        </td>
+                                    )}
+                                    {!isStockEntry && (
+                                        <>
+                                            <td></td>
+                                            <td></td>
+                                            <td className="p-2">
+                                                {formatCurrency(productSubtotal(movProduct))}
+                                            </td>
+                                        </>
+                                    )}
                                     <td></td>
                                 </tr>
                             </tfoot>

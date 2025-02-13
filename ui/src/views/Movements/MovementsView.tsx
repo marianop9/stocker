@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import MovementForm from "./MovementForm";
-import { IMovementDto } from "@/models/movements";
+import { getPaymentType, IMovementDto } from "@/models/movements";
 import { AppDataTable } from "@/components/AppDataTable";
 import AppDialogWrapper from "@/components/AppDialogWrapper";
 import AppLink from "@/components/AppLink";
@@ -67,6 +67,22 @@ function useMovementColumns(onDelete: (id: string) => void) {
             filterFn: "arrIncludesSome",
         },
         {
+            header: "Tipo de venta",
+            accessorKey: "paymentType",
+            cell({ row }) {
+                return <>{getPaymentType(row.original.paymentType)}</>;
+            },
+            meta: {
+                variant: "checkboxes",
+                filterOpts: [
+                    { label: "Contado", value: "CASH" },
+                    { label: "Tarjeta", value: "CARD" },
+                    { label: "Promoción", value: "PROMO" },
+                ] as FilterOption[],
+            },
+            filterFn: "arrIncludesSome",
+        },
+        {
             id: "actions",
             cell({ row }) {
                 const isOpen = row.original.state === "OPEN";
@@ -103,13 +119,9 @@ function MovementsView() {
     const hasError = fetcher.data && !fetcher.data.success;
 
     function handleDelete(id: string) {
-        fetcher.submit({ id: id }, { method: "DELETE" });
+        fetcher.submit(null, { method: "DELETE", action: `/movements/${id}` });
     }
 
-    // const columns: ColumnDef<IMovementDto>[] = useMemo(
-    //     () => useMovementColumns(filters, setFilters, handleDelete),
-    //     [],
-    // );
     const columns: ColumnDef<IMovementDto>[] = useMovementColumns(handleDelete);
 
     return (

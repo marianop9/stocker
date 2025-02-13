@@ -11,7 +11,7 @@ import { ListResult } from "pocketbase";
 interface IMovementService {
     list(): Promise<ListResult<IMovementDto>>;
     get(id: string): Promise<IMovementDto>;
-    create(entity: IMovementDto): Promise<ServiceResponse<IMovementDto>>;
+    createOrUpdate(entity: IMovementDto): Promise<ServiceResponse<IMovementDto>>;
     close(id: string): Promise<ServiceResponse<CustomEndpointResponse>>;
     delete(id: string): Promise<ServiceResponse<CustomEndpointResponse>>;
 }
@@ -25,8 +25,14 @@ export const movementService: IMovementService = {
     get(id) {
         return pbClient.movements.getOne(id);
     },
-    create(entity: IMovementDto) {
-        const promise = pbClient.movements.create(entity);
+    createOrUpdate(entity: IMovementDto) {
+        let promise: Promise<IMovementDto>;
+
+        if (entity.id === "") {
+            promise = pbClient.movements.create(entity);
+        } else {
+            promise = pbClient.movements.update(entity.id, entity);
+        }
 
         return executeService(promise);
     },

@@ -1,5 +1,26 @@
-export type MovementType = "IN" | "OUT" | "EXCHANGE";
-export type MovementState = "OPEN" | "CLOSED" | "ANNULLED";
+export const movementTypes = ["IN", "OUT", "EXCHANGE"] as const;
+export type MovementType = (typeof movementTypes)[number];
+
+export const movementTypeNames: Record<MovementType, string> = {
+    IN: "Compra",
+    OUT: "Venta",
+    EXCHANGE: "Cambio",
+};
+
+export const movementStates = ["OPEN", "CLOSED", "ANNULLED"] as const;
+export type MovementState = (typeof movementStates)[number];
+
+export type PaymentType = "CASH" | "CARD" | "PROMO";
+export function getPaymentType(pt: PaymentType) {
+    switch (pt) {
+        case "CASH":
+            return "Contado";
+        case "PROMO":
+            return "Promoción";
+        case "CARD":
+            return "Tarjeta";
+    }
+}
 
 export interface IMovementDto {
     id: string;
@@ -7,6 +28,8 @@ export interface IMovementDto {
     type: MovementType;
     state: MovementState;
     reference: string;
+    paymentType: PaymentType;
+    discount: number;
 }
 
 export interface IStockMovementDto {
