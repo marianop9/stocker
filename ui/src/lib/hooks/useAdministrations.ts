@@ -11,14 +11,15 @@ import { useQuery } from "@tanstack/react-query";
 export function useCategories() {
     const queryKey = ["categories"];
 
-    const queryResult = useQuery({
+    const { data, isLoading } = useQuery({
         queryKey,
         queryFn: categoryService.list,
     });
 
     return {
         queryKey,
-        ...queryResult,
+        data,
+        isLoading,
     };
 }
 

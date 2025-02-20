@@ -15,7 +15,13 @@ function MovementOverview({ movement }: { movement: IMovementDto }) {
             <AppFormEntry label="Fecha" name="date" readonly>
                 {formatDate(movement.date)}
             </AppFormEntry>
-            <AppLabel label="Tipo de venta">{getPaymentType(movement.paymentType)}</AppLabel>
+            <div>
+                {movement.type !== "IN" && (
+                    <AppLabel label="Tipo de venta">
+                        {getPaymentType(movement.paymentType)}
+                    </AppLabel>
+                )}
+            </div>
             <AppFormEntry label="Referencia" name="reference" readonly>
                 <p>{movement.reference}</p>
             </AppFormEntry>

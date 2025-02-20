@@ -45,14 +45,19 @@ const createMovementAction: ActionFunction = async function ({
     console.log(obj);
     const { success, data, error } = MovementFormSchema.safeParse(obj);
 
-    if (!success)
+    if (!success) {
+        console.log(error);
         return {
             errorType: "Form",
             errors: error.format(),
         };
+    }
 
     const isCreate = data.id === undefined || data.id === "";
 
+    if (data.type === "IN") {
+        data.paymentType = "CASH";
+    }
     if (data.paymentType !== "PROMO") {
         data.discount = 0;
     }

@@ -72,7 +72,7 @@ function MovementForm({ movement, onSubmitted }: Props) {
     );
 
     const [paymentType, setPaymentType] = useState(() =>
-        movement ? movement.paymentType : paymentTypeOpts[1].value,
+        movement ? movement.paymentType : paymentTypeOpts[0].value,
     );
 
     return (
@@ -95,18 +95,23 @@ function MovementForm({ movement, onSubmitted }: Props) {
                     disabled={isUpdating}
                 />
             </AppFormEntry>
-            <AppFormEntry
-                label="Tipo de venta"
-                name="payment_type"
-                errors={formErrors?.paymentType?._errors}
-            >
-                <AppSelect
-                    name="paymentType"
-                    options={paymentTypeOpts}
-                    value={paymentType}
-                    onValueChange={(v) => setPaymentType(v as PaymentType)}
-                />
-            </AppFormEntry>
+
+            {movementType === "IN" ? (
+                <input hidden defaultValue={paymentType} name="paymentType" />
+            ) : (
+                <AppFormEntry
+                    label="Tipo de venta"
+                    name="payment_type"
+                    errors={formErrors?.paymentType?._errors}
+                >
+                    <AppSelect
+                        name="paymentType"
+                        options={paymentTypeOpts}
+                        value={paymentType}
+                        onValueChange={(v) => setPaymentType(v as PaymentType)}
+                    />
+                </AppFormEntry>
+            )}
             {paymentType === "PROMO" && (
                 <AppFormEntry
                     label="Descuento (%)"

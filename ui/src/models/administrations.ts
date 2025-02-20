@@ -1,7 +1,4 @@
-interface INamed {
-    id: string;
-    name: string;
-}
+import { INamed } from "./common.model";
 
 export interface IDescribable extends INamed {
     description: string;

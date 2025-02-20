@@ -1,6 +1,6 @@
+import Select from "react-select";
 import AppFormEntry from "@/components/AppFormEntry";
 import { Input } from "@/components/ui/input";
-import AppSelect from "@/components/AppSelect";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { z, ZodFormattedError } from "zod";
@@ -18,6 +18,7 @@ import {
     useMaterials,
     useProviders,
 } from "@/lib/hooks/useAdministrations";
+import { INamed } from "@/models/common.model";
 
 type ProductFormSchemaType = z.infer<typeof ProductFormSchema>;
 
@@ -26,21 +27,34 @@ interface Props {
     afterSubmit: (p: IProductDto) => void;
 }
 
+function makeOptions<T extends INamed>(items: T[]) {
+    return items.map((it) => ({ label: it.name, value: it.id }));
+}
+
 function ProductForm({ product, afterSubmit }: Props) {
     const isUpdate = !!(product && product.id);
 
     const fetcher = useFetcher();
 
-    const { register, control, handleSubmit, getValues, setValue } = useForm<ProductFormSchemaType>(
-        {
-            defaultValues: product,
-        },
-    );
+    const { register, control, handleSubmit, setValue, watch } = useForm<ProductFormSchemaType>({
+        defaultValues: product,
+    });
 
-    const { data: categories } = useCategories();
-    const { data: providers } = useProviders();
-    const { data: materials } = useMaterials();
-    const { data: clothingTypes } = useClothingTypes();
+    const { data: categories, isLoading: loadingCategories } = useCategories();
+    const categoryOpts = makeOptions(categories ?? []);
+
+    const { data: providers, isLoading: loadingProviders } = useProviders();
+    const providerOpts = makeOptions(providers ?? []);
+
+    const { data: materials, isLoading: loadingMaterials } = useMaterials();
+    const materialOpts = makeOptions(materials ?? []);
+
+    const { data: clothingTypes, isLoading: loadingClothingTypes } = useClothingTypes();
+    const clothingTypeOpts = makeOptions(clothingTypes ?? []);
+
+    // TODO! ganancia y recargo (diferencia contado/lista)
+    // const [margin, setMargin] = useState(0);
+    // const [applyMargin, setApplyMargin] = useState(false);
 
     const [serverError, setServerError] = useState("");
     const serverErrorRef = useRef<HTMLDivElement>(null);
@@ -65,6 +79,12 @@ function ProductForm({ product, afterSubmit }: Props) {
     useEffect(() => {
         serverErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [serverError]);
+
+    const unitCost = watch("unitCost");
+    // const [unitCost, totalCost, cashPrice] = watch(["unitCost", 'totalCost', 'cashPrice']);
+    useEffect(() => {
+        setValue("totalCost", unitCost);
+    }, [setValue, unitCost]);
 
     // const [margin, setMargin] = useState(() => {
     //     if (!product || product.cost * product.price <= 0) {
@@ -97,17 +117,17 @@ function ProductForm({ product, afterSubmit }: Props) {
     //     }
     // }
 
-    function buildSku(categoryId: string, providerId: string) {
-        if (!categoryId || !providerId) return;
+    // function buildSku(categoryId: string, providerId: string) {
+    //     if (!categoryId || !providerId) return;
 
-        const category = categories?.find((c) => c.id === categoryId);
-        const provider = providers?.find((c) => c.id === providerId);
+    //     const category = categories?.find((c) => c.id === categoryId);
+    //     const provider = providers?.find((c) => c.id === providerId);
 
-        if (category && provider) {
-            const sku = category?.code + provider?.code;
-            setValue("sku", sku);
-        }
-    }
+    //     if (category && provider) {
+    //         const sku = category?.code + provider?.code;
+    //         setValue("sku", sku);
+    //     }
+    // }
 
     const submitHandler: SubmitHandler<ProductFormSchemaType> = async (form) => {
         const { success, data, error } = ProductFormSchema.safeParse(form);
@@ -186,19 +206,14 @@ function ProductForm({ product, afterSubmit }: Props) {
                     <Controller
                         control={control}
                         name="categoryId"
-                        render={({ field: { onChange, ...field } }) => (
-                            <AppSelect
-                                options={
-                                    categories?.map((it) => ({
-                                        label: it.name,
-                                        value: it.id,
-                                    })) ?? []
-                                }
+                        render={({ field: { onChange, value, ...field } }) => (
+                            <Select
+                                options={categoryOpts}
+                                onChange={(v) => onChange(v?.value)}
+                                value={categoryOpts?.find((x) => x.value === value)}
                                 {...field}
-                                onValueChange={(value) => {
-                                    buildSku(value, getValues("providerId"));
-                                    onChange(value);
-                                }}
+                                isClearable
+                                isLoading={loadingCategories}
                             />
                         )}
                     />
@@ -211,19 +226,27 @@ function ProductForm({ product, afterSubmit }: Props) {
                     <Controller
                         control={control}
                         name="providerId"
-                        render={({ field: { onChange, ...field } }) => (
-                            <AppSelect
-                                options={
-                                    providers?.map((it) => ({
-                                        label: it.name,
-                                        value: it.id,
-                                    })) ?? []
-                                }
+                        render={({ field: { onChange, value, ...field } }) => (
+                            // <AppSelect
+                            //     options={
+                            //         providers?.map((it) => ({
+                            //             label: it.name,
+                            //             value: it.id,
+                            //         })) ?? []
+                            //     }
+                            //     {...field}
+                            //     onValueChange={(value) => {
+                            //         buildSku(getValues("categoryId"), value);
+                            //         onChange(value);
+                            //     }}
+                            // />
+                            <Select
+                                options={providerOpts}
+                                onChange={(v) => onChange(v?.value)}
+                                value={providerOpts.find((x) => x.value === value)}
                                 {...field}
-                                onValueChange={(value) => {
-                                    buildSku(getValues("categoryId"), value);
-                                    onChange(value);
-                                }}
+                                isClearable
+                                isLoading={loadingProviders}
                             />
                         )}
                     />
@@ -237,19 +260,14 @@ function ProductForm({ product, afterSubmit }: Props) {
                     <Controller
                         control={control}
                         name="materialId"
-                        render={({ field: { onChange, ...field } }) => (
-                            <AppSelect
-                                options={
-                                    materials?.map((it) => ({
-                                        label: it.name,
-                                        value: it.id,
-                                    })) ?? []
-                                }
+                        render={({ field: { onChange, value, ...field } }) => (
+                            <Select
+                                options={materialOpts}
+                                onChange={(v) => onChange(v?.value)}
+                                value={materialOpts.find((x) => x.value === value)}
                                 {...field}
-                                onValueChange={(value) => {
-                                    // buildSku(getValues("categoryId"), value);
-                                    onChange(value);
-                                }}
+                                isClearable
+                                isLoading={loadingMaterials}
                             />
                         )}
                     />
@@ -262,19 +280,14 @@ function ProductForm({ product, afterSubmit }: Props) {
                     <Controller
                         control={control}
                         name="clothingTypeId"
-                        render={({ field: { onChange, ...field } }) => (
-                            <AppSelect
-                                options={
-                                    clothingTypes?.map((it) => ({
-                                        label: it.name,
-                                        value: it.id,
-                                    })) ?? []
-                                }
+                        render={({ field: { onChange, value, ...field } }) => (
+                            <Select
+                                options={clothingTypeOpts}
+                                onChange={(v) => onChange(v?.value)}
+                                value={clothingTypeOpts.find((x) => x.value === value)}
                                 {...field}
-                                onValueChange={(value) => {
-                                    // buildSku(getValues("categoryId"), value);
-                                    onChange(value);
-                                }}
+                                isClearable
+                                isLoading={loadingClothingTypes}
                             />
                         )}
                     />
@@ -347,24 +360,24 @@ function ProductForm({ product, afterSubmit }: Props) {
                         step=".01"
                     />
                 </AppFormEntry>
-            </div>
-            {/* <div className="flex justify-between">
-                <AppFormEntry label="Precio" name="price" errors={errors?.price?._errors}>
+
+                {/* <AppFormEntry label="Ganancia" name="" readonly={!applyMargin}>
                     <Input
                         type="number"
-                        {...register("price", {
-                            onChange(event) {
-                                updateMargin(getValues("cost"), event.target.value);
-                            },
-                            valueAsNumber: true,
-                        })}
-                        step=".01"
+                        value={margin}
+                        onChange={(e) => setMargin(parseFloat(e.target.value))}
+                        min={0}
+                        step="0.1"
+                        readOnly={!applyMargin}
                     />
                 </AppFormEntry>
-                <AppFormEntry label="Margen" name="margin">
-                    <Input name="margin" value={margin} disabled />
-                </AppFormEntry>
-            </div> */}
+                <div className="flex items-center gap-x-2">
+                    <Checkbox checked={applyMargin} onCheckedChange={(e) => setApplyMargin(!!e)} />
+                    <Label>Aplicar ganancia</Label>
+                </div>
+                // TODO! ganancia y recargo (diferencia contado/lista)
+                 */}
+            </div>
             <div>
                 <AppFormEntry label="SKU" name="sku">
                     <Input {...register("sku")} disabled />
