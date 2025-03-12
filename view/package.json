@@ -46,7 +46,7 @@
 	},
 	"dependencies": {
 		"@types/node": "^22.13.10",
-		"lucide-svelte": "^0.479.0",
-		"pocketbase": "^0.25.2"
+		"pocketbase": "^0.25.2",
+		"remixicon": "^4.6.0"
 	}
 }

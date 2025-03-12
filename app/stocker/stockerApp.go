@@ -4,15 +4,46 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
-	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/hook"
 )
 
-var defaultMiddleware []*hook.Handler[*core.RequestEvent] = []*hook.Handler[*core.RequestEvent]{
-	apis.RequireAuth("_superusers", "users"),
-}
+// var defaultMiddleware []*hook.Handler[*core.RequestEvent] = []*hook.Handler[*core.RequestEvent]{
+// 	apis.RequireAuth("_superusers", "users"),
+// }
+
+// copia del middleware apis.RequireAuth de PocketBase
+// "github.com/pocketbase/pocketbase/apis"
+// func customRequireAuth(optCollectionNames ...string) func(*core.RequestEvent) error {
+// 	return func(e *core.RequestEvent) error {
+// 		log.Printf("auth record: %#v\n\n", e.Auth)
+
+// 		// if strings.HasPrefix(e.Request.URL.Path, "/_/") {
+// 		// 	return e.Next()
+// 		// }
+
+// 		// if strings.Contains(e.Request.URL.Path, "auth-with-password") {
+// 		// 	return e.Next()
+// 		// }
+
+// 		// if e.Auth == nil {
+// 		// 	return e.UnauthorizedError("The request requires valid record authorization token.", nil)
+// 		// }
+
+// 		// // check record collection name
+// 		// if len(optCollectionNames) > 0 && !slices.Contains(optCollectionNames, e.Auth.Collection().Name) {
+// 		// 	return e.ForbiddenError("The authorized record is not allowed to perform this action.", nil)
+// 		// }
+
+// 		return e.Next()
+// 	}
+// }
+
+const (
+	CollectionSuperusers = core.CollectionNameSuperusers
+	collectionUsers      = "users"
+)
 
 type StockerApp struct {
 	PbApp    core.App
@@ -37,9 +68,23 @@ func (sa *StockerApp) AddCustomHandler(module, action, httpMethod string, handle
 
 func (sa *StockerApp) RegisterCustomHandlers() {
 	sa.PbApp.OnServe().BindFunc(func(e *core.ServeEvent) error {
-		customRoutes := e.Router.Group("/api/custom/")
+		// e.Router.BindFunc(customRequireAuth("_superusers", "users"))
+		e.Router.BindFunc(func(e *core.RequestEvent) error {
+			requestPath := e.Request.URL.Path
 
-		customRoutes.Bind(defaultMiddleware...)
+			if strings.HasPrefix(requestPath, "/_/") ||
+				strings.HasPrefix(requestPath, "/api/collections/"+collectionUsers) ||
+				strings.HasPrefix(requestPath, "/api/collections/"+CollectionSuperusers) {
+				return e.Next()
+			}
+
+			e.Response.Header().Add("Cache-Control", "max-age=60")
+
+			return e.Next()
+		})
+
+		customRoutes := e.Router.Group("/api/custom/")
+		// customRoutes.Bind(defaultMiddleware...)
 
 		for _, h := range sa.handlers {
 			path := h.getEndpointPath()

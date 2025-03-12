@@ -8,32 +8,19 @@ class PocketBaseService {
 
 	constructor(baseUrl: string) {
 		this.#pb = new PocketBase(baseUrl);
-        this.#pb.afterSend = (resp, data) => {
-            console.log(resp.status);
+		this.#pb.afterSend = (resp, data) => {
+			console.log(resp.status);
 
-            if (resp.status === 401) {
-                goto('/login');
-            }
-            
-            return data;
-        };
+			if (resp.status === 401) {
+				goto('/login');
+			}
 
-        this.#pb.beforeSend = (url, opts) => {
-            const customFetch: (url: RequestInfo | URL, config?: RequestInit) => Promise<Response> =
-                async (url, config) => {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    return fetch(url, config);
-                } 
-            
-            return {
-                url, 
-                options: {
-                    ...opts,
-                    
-                }
-            }
-        }
+			return data;
+		};
+
+		this.#pb.beforeSend = async (url, options) => {
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		};
 	}
 
 	get products() {
@@ -43,13 +30,13 @@ class PocketBaseService {
 		return this.#pb.collection<ProductModel>('products_view');
 	}
 
-    get users() {
-        return this.#pb.collection('users');
-    }
+	get users() {
+		return this.#pb.collection('users');
+	}
 
-    get authStore() {
-        return this.#pb.authStore;
-    }
+	get authStore() {
+		return this.#pb.authStore;
+	}
 
 	test() {
 		this.products.getList();

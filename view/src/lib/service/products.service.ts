@@ -1,6 +1,7 @@
 import type { ProductDTO, ProductModel } from '$lib/models/product.model';
 import { _pbService, executeService } from '$lib/pocketbase';
 import { ResultErr, ResultOk, type Result } from '$lib/utils/result';
+import type { ListResult } from 'pocketbase';
 
 interface IProductService {
 	create(p: ProductDTO): Promise<ProductDTO>;
@@ -8,7 +9,7 @@ interface IProductService {
 	delete(id: string): Promise<void>;
 
 	get(id: string): Promise<ProductModel>;
-	list(fetchFn: typeof fetch): Promise<ProductModel[]>;
+	list(filter: string, page: number, perPage: number): Promise<ListResult<ProductModel>>;
 }
 
 export const productService: IProductService = {
@@ -24,15 +25,15 @@ export const productService: IProductService = {
 	get: function (id: string): Promise<ProductModel> {
 		throw new Error('Function not implemented.');
 	},
-	list: async function (fetchFn: typeof fetch): Promise<ProductModel[]> {
-		// const resp = await executeService(() =>
-		// 	_pbService.products.getList(1, 30, {
-		// 		// fetch: fetchFn
-		// 	})
-		// );
+	list: async function (
+		filter: string,
+		page: number,
+		perPage: number
+	): Promise<ListResult<ProductModel>> {
+		const resp = await _pbService.productsView.getList(page, perPage, {
+			filter: `name ~ '${filter}'`,
+		});
 
-        const resp = await _pbService.productsView.getList(1, 30);
-
-        return resp.items;
-    }
+		return resp;
+	}
 };
