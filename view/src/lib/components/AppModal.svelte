@@ -3,12 +3,12 @@
 
 	let {
 		showModal = $bindable(false),
-		header,
+		title,
 		children,
 		dismissable = true
 	}: {
 		showModal: boolean;
-		header: Snippet;
+		title: string;
 		children: Snippet;
 		dismissable?: boolean;
 	} = $props();
@@ -38,7 +38,7 @@
 >
 	<div>
 		<div class="flex items-center justify-between pb-1">
-			{@render header?.()}
+            <span class="h4">{title}</span>
 			{#if dismissable}
 				<button class="btn-icon" aria-label="close-dialog" onclick={() => dialog?.close()}>
 					<i class="ri-close-large-line"></i>

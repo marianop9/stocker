@@ -12,7 +12,7 @@ interface IProductService {
 	list(filter: string, page: number, perPage: number): Promise<ListResult<ProductModel>>;
 }
 
-export const productService: IProductService = {
+export const productsService: IProductService = {
 	create: function (p: ProductDTO): Promise<ProductDTO> {
 		throw new Error('Function not implemented.');
 	},

@@ -3,6 +3,9 @@ import { ProductDTO, ProductModel } from './models/product.model';
 import { ResultErr, ResultOk, type Result } from './utils/result';
 import { goto } from '$app/navigation';
 
+/**
+ * PocketBase wrapper
+ */
 class PocketBaseService {
 	#pb: PocketBase;
 
@@ -40,6 +43,10 @@ class PocketBaseService {
 
 	test() {
 		this.products.getList();
+	}
+
+	collection<T>(name: string) {
+		return this.#pb.collection<T>(name);
 	}
 }
 

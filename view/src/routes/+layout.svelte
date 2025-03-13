@@ -4,7 +4,7 @@
 
 	import 'remixicon/fonts/remixicon.css';
 	import '../app.css';
-	import Modal from '$lib/components/Modal.svelte';
+	import AppModal from '$lib/components/AppModal.svelte';
 	import { goto } from '$app/navigation';
 	import { authService } from '$lib/service/auth.service';
 
@@ -29,7 +29,14 @@
 		console.log('route is: ' + page.route.id);
 	});
 
-	let routes = [
+	type Route = {
+		id: string;
+		title: string;
+		label?: string;
+		icon?: string;
+		children?: Route[];
+	};
+	let routes: Route[] = [
 		{
 			id: '/',
 			label: 'Inicio',
@@ -41,20 +48,44 @@
 			label: 'Productos',
 			title: 'Productos',
 			icon: 'ri-shirt-line'
+		},
+		{
+			id: '/attributes',
+			label: 'Atributos',
+			title: 'Administrar Atributos',
+			icon: 'ri-tools-line',
+			children: [
+				{
+					id: '/categories',
+					title: 'Categorias'
+				},
+				{
+					id: '/providers',
+					title: 'Proveedores'
+				}
+			]
 		}
 	];
+
+	function findNestedRouteTitle(currentRoute: string) {
+		const routesWithChildren = routes.filter((r) => r.children?.length);
+
+		for (const parent of routesWithChildren) {
+			const match = parent.children!.find((child) => currentRoute === `${parent.id}${child.id}`);
+			if (match) {
+				return parent.title;
+			}
+		}
+	}
 </script>
 
-<Modal showModal={!isAuth} dismissable={false}>
-	{#snippet header()}
-		<span class="text-xl">La sesión ha expirado</span>
-	{/snippet}
+<AppModal showModal={!isAuth} dismissable={false} title="La sesión ha expirado">
 	<p>Vuelva a iniciar sesión.</p>
 
 	<div class="flex justify-end">
 		<button class="btn preset-filled" onclick={onSessionExpired}>Continuar</button>
 	</div>
-</Modal>
+</AppModal>
 
 {#if page.route.id === loginPage}
 	{@render children()}
@@ -66,7 +97,7 @@
 				<div>
 					{#each routes as route}
 						<a
-							href={route.id}
+							href={route.children?.length ? route.id.concat(route.children[0].id) : route.id}
 							class="hover:bg-surface-600 my-1 flex gap-2 rounded p-2"
 							class:bg-surface-900={page.route.id === route.id}
 						>
@@ -75,7 +106,7 @@
 						</a>
 					{/each}
 				</div>
-				<!-- <button class="btn preset-filled-surface-500 mb-5"> -->
+
 				<button class="hover:bg-surface-600 my-1 flex gap-2 rounded p-2" onclick={logout}>
 					<i class="ri-logout-box-line"></i>
 					<span class="hidden md:block">Salir</span>
@@ -87,11 +118,12 @@
 			<AppBar>
 				{#snippet headline()}
 					<h1 class="h1">
-						{routes.find((r) => r.id === page.route.id)?.title ?? 'title missing'}
+						{routes.find((r) => r.id === page.route.id)?.title ??
+							findNestedRouteTitle(page.url.pathname) ??
+							'title missing'}
 					</h1>
 				{/snippet}
 			</AppBar>
-			<!-- <button onclick={() => ()}>shomodal</button> -->
 
 			{@render children()}
 		</main>
