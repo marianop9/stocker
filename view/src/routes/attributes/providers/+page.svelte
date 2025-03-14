@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import AppLoadingIndicator from '$lib/components/AppLoadingIndicator.svelte';
 	import AppModal from '$lib/components/AppModal.svelte';
 	import { Category } from '$lib/models/attributes.model.js';
@@ -7,7 +7,6 @@
 	import CategoriesForm from './CategoriesForm.svelte';
 	import AttributesTable from '../AttributesTable.svelte';
 	import AttributeSearchBox from '../AttributeSearchBox.svelte';
-	import AttributeUpsertForm from '../AttributeUpsertForm.svelte';
 
 	const categoriesService = new CategoriesService();
 
@@ -60,23 +59,11 @@
 	title="Agregar categoria"
 	dismissable={false}
 >
-	<!-- <CategoriesForm
+	<CategoriesForm
 		category={selected}
 		onCancel={handleFormClose}
 		onSubmitted={handleFormSubmission}
-	/> -->
-	<AttributeUpsertForm
-		attribute={selected}
-		buildAttribute={(id, name, description, _) =>
-			new Category(id, name, description)}
-		attributeService={categoriesService}
-		onCancel={handleFormClose}
-		onSubmitted={handleFormSubmission}
-	>
-		{#snippet extraFields()}
-			<div>extra form content</div>
-		{/snippet}
-	</AttributeUpsertForm>
+	/>
 </AppModal>
 
 <AttributeSearchBox bind:filter>
@@ -96,4 +83,4 @@
 		onRowClick={handleRowClick}
 		onDelete={handleDelete}
 	/>
-{/if}
+{/if} -->

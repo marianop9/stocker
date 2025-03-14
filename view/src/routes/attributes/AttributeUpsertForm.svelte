@@ -1,18 +1,40 @@
-<script lang="ts">
+<script
+	lang="ts"
+	generics="T extends ProductAttribute, S extends ProductAttributeService<T>"
+>
 	import AppButton from '$lib/components/AppButton.svelte';
 	import AppErrorCard from '$lib/components/AppErrorCard.svelte';
 	import AppInputWrapper from '$lib/components/AppInputWrapper.svelte';
-	import { Category } from '$lib/models/attributes.model';
+	import { ProductAttribute } from '$lib/models/attributes.model';
 	import { decodeServiceException } from '$lib/pocketbase';
-	import { CategoriesService } from '$lib/service/attributes.service';
+	import {
+		CategoriesService,
+		ProductAttributeService,
+	} from '$lib/service/attributes.service';
+	import type { Snippet } from 'svelte';
 
 	interface Props {
-		category: Category | null;
+		attribute: T | null;
+		buildAttribute(
+			id: string,
+			name: string,
+			description: string,
+			form: HTMLFormElement
+		): T;
+		attributeService: S;
 		onCancel(): void;
-		onSubmitted(c: Category): void;
+		onSubmitted(c: T): void;
+		extraFields?: Snippet;
 	}
 
-	let { category, onCancel, onSubmitted }: Props = $props();
+	let {
+		attribute,
+		buildAttribute,
+		attributeService,
+		onCancel,
+		onSubmitted,
+		extraFields,
+	}: Props = $props();
 
 	let loading = $state(false);
 	let serverError = $state('');
@@ -24,18 +46,18 @@
 		const form = e.target as HTMLFormElement;
 		const formData = new FormData(form);
 
-		const newData = new Category(
-			category?.id ?? "",
+		const newData = buildAttribute(
+			attribute?.id ?? '',
 			formData.get('name') as string,
-			formData.get('description') as string
+			formData.get('description') as string,
+			form
 		);
 
 		try {
-			const service = new CategoriesService();
 			const result =
-				category !== null
-					? await service.update(category.id, newData)
-					: await service.create(newData);
+				attribute !== null
+					? await attributeService.update(attribute.id, newData)
+					: await attributeService.create(newData);
 
 			onSubmitted(result);
 			form.reset();
@@ -58,7 +80,7 @@
 			name="name"
 			required
 			minlength="3"
-			defaultValue={category?.name ?? ""}
+			defaultValue={attribute?.name ?? ''}
 		/>
 	</AppInputWrapper>
 	<AppInputWrapper label="Descripción">
@@ -66,9 +88,12 @@
 			name="description"
 			class="textarea"
 			rows="3"
-			defaultValue={category?.description ?? ""}
+			defaultValue={attribute?.description ?? ''}
 		></textarea>
 	</AppInputWrapper>
+
+
+    {@render extraFields?.()}
 
 	<div class="mt-4 flex justify-end gap-x-1">
 		<button type="button" class="btn" onclick={onCancel}>Cancelar</button>

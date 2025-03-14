@@ -78,7 +78,10 @@ func (sa *StockerApp) RegisterCustomHandlers() {
 				return e.Next()
 			}
 
-			e.Response.Header().Add("Cache-Control", "max-age=60")
+			// cache only GET requests
+			if e.Request.Method == http.MethodGet {
+				e.Response.Header().Add("Cache-Control", "max-age=30")
+			}
 
 			return e.Next()
 		})

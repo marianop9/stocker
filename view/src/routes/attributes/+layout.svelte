@@ -1,6 +1,4 @@
 <script lang="ts">
-	import CategoriesTab from './CategoriesTab.svelte';
-	import type { Component } from 'svelte';
 	import { page } from '$app/state';
 	import { attributeCollectionNames } from '$lib/models/attributes.model';
 
@@ -14,30 +12,36 @@
 	const tabs: Tab[] = [
 		{
 			id: 'categories',
-			title: 'Categorias'
+			title: 'Categorias',
 		},
 		{
 			id: 'providers',
-			title: 'Proveedores'
-		}
+			title: 'Proveedores',
+		},
 	];
 
 	// active tab (last path segment)
-	let activeTabId = $derived(page.url.pathname.slice(page.url.pathname.lastIndexOf('/') + 1));
+	let activeTabId = $derived(
+		page.url.pathname.slice(page.url.pathname.lastIndexOf('/') + 1)
+	);
 </script>
 
-<nav class="btn-group preset-outlined-surface-200-800 flex justify-center">
+<nav class="btn-group preset-outlined-surface-200-800 flex justify-center mb-8">
 	{#each tabs as tab}
-		<a href={tab.id} class="btn hover:preset-tonal" class:preset-filled={activeTabId === tab.id}>
+		<a
+			href={tab.id}
+			class="btn hover:preset-tonal"
+			class:preset-filled={activeTabId === tab.id}
+		>
 			{tab.title}
 		</a>
 	{/each}
 </nav>
 
-{#if attributeCollectionNames.find((attr) => attr === activeTabId) === undefined}
-	atributo desconocido
-{:else}
+{#if attributeCollectionNames.some((attr) => attr === activeTabId)}
 	<div class="mx-auto w-2/3">
 		{@render children()}
 	</div>
+{:else}
+	atributo desconocido
 {/if}
