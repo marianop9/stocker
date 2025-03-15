@@ -1,5 +1,3 @@
-export const attributeCollectionNames = ['categories', 'providers'] as const;
-
 export abstract class ProductAttribute {
 	readonly id: string;
 	readonly name: string;
@@ -16,15 +14,28 @@ export class Category extends ProductAttribute {
 	constructor(id: string, name: string, description: string) {
 		super(id, name, description);
 	}
-
-	static new(name: string, description: string) {
-		return new Category('', name, description);
-	}
 }
 
 export class Provider extends ProductAttribute {
 	constructor(id: string, name: string, description: string) {
 		super(id, name, description);
 	}
+}
 
+export class Material extends ProductAttribute {
+	constructor(id: string, name: string, description: string) {
+		super(id, name, description);
+	}
+}
+
+export class Color extends ProductAttribute {
+	constructor(id: string, name: string, description: string) {
+		super(id, name, description);
+	}
+}
+
+export class Size extends ProductAttribute {
+	constructor(id: string, name: string, description: string) {
+		super(id, name, description);
+	}
 }

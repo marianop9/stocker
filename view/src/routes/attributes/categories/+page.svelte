@@ -4,10 +4,10 @@
 	import { Category } from '$lib/models/attributes.model.js';
 	import { CategoriesService } from '$lib/service/attributes.service';
 	import { onMount } from 'svelte';
-	import CategoriesForm from './CategoriesForm.svelte';
 	import AttributesTable from '../AttributesTable.svelte';
 	import AttributeSearchBox from '../AttributeSearchBox.svelte';
 	import AttributeUpsertForm from '../AttributeUpsertForm.svelte';
+	import { setServerError } from '../attributesContext.svelte';
 
 	const categoriesService = new CategoriesService();
 
@@ -48,10 +48,13 @@
 	}
 
 	async function handleDelete(c: Category) {
-		await categoriesService.delete(c.id);
-
-		const idx = data.indexOf(c);
-		data.splice(idx, 1);
+		try {
+			await categoriesService.delete(c.id);
+			const idx = data.indexOf(c);
+			data.splice(idx, 1);
+		} catch (ex) {
+			setServerError(ex);
+		}
 	}
 </script>
 
@@ -67,7 +70,7 @@
 	/> -->
 	<AttributeUpsertForm
 		attribute={selected}
-		buildAttribute={(id, name, description, _) =>
+		buildAttribute={({id, name, description}, _) =>
 			new Category(id, name, description)}
 		attributeService={categoriesService}
 		onCancel={handleFormClose}

@@ -1,33 +1,33 @@
 <script lang="ts">
 	import AppLoadingIndicator from '$lib/components/AppLoadingIndicator.svelte';
 	import AppModal from '$lib/components/AppModal.svelte';
-	import { Provider } from '$lib/models/attributes.model.js';
-	import { ProvidersService } from '$lib/service/attributes.service';
+	import { Material } from '$lib/models/attributes.model.js';
+	import { MaterialsService } from '$lib/service/attributes.service';
 	import { onMount } from 'svelte';
 	import AttributesTable from '../AttributesTable.svelte';
 	import AttributeSearchBox from '../AttributeSearchBox.svelte';
 	import AttributeUpsertForm from '../AttributeUpsertForm.svelte';
 	import { setServerError } from '../attributesContext.svelte';
 
-	const providersService = new ProvidersService();
+	const materialsService = new MaterialsService();
 
-	let data: Provider[] = $state([]);
+	let data: Material[] = $state([]);
 	let loading = $state(true);
 
 	onMount(async () => {
-		data = await providersService.list();
+		data = await materialsService.list();
 		loading = false;
 	});
 
 	let filter = $state('');
 	let showEditModal = $state(false);
-	let selected: Provider | null = $state(null);
+	let selected: Material | null = $state(null);
 
 	let filteredList = $derived(
 		data.filter((row) => row.name.toLowerCase().includes(filter.toLowerCase()))
 	);
 
-	function handleFormSubmission(c: Provider) {
+	function handleFormSubmission(c: Material) {
 		if (selected) {
 			const idx = data.indexOf(selected);
 			data[idx] = c;
@@ -42,14 +42,14 @@
 		selected = null;
 	}
 
-	function handleRowClick(c: Provider) {
+	function handleRowClick(c: Material) {
 		selected = c;
 		showEditModal = true;
 	}
 
-	async function handleDelete(c: Provider) {
+	async function handleDelete(c: Material) {
 		try {
-			await providersService.delete(c.id);
+			await materialsService.delete(c.id);
 			const idx = data.indexOf(c);
 			data.splice(idx, 1);
 		} catch (ex) {
@@ -60,16 +60,16 @@
 
 <AppModal
 	bind:showModal={showEditModal}
-	title="Agregar proveedor"
+	title="Agregar material"
 	dismissable={false}
 >
 	<AttributeUpsertForm
 		attribute={selected}
-		attributeService={providersService}
-		buildAttribute={({ id, name, description }) =>
-			new Provider(id, name, description)}
-		onSubmitted={handleFormSubmission}
+		buildAttribute={({ id, name, description }, _) =>
+			new Material(id, name, description)}
+		attributeService={materialsService}
 		onCancel={handleFormClose}
+		onSubmitted={handleFormSubmission}
 	></AttributeUpsertForm>
 </AppModal>
 

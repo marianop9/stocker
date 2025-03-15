@@ -9,7 +9,7 @@
 	let { filter = $bindable(''), actions }: Props = $props();
 </script>
 
-<div class="card preset-tonal my-2 flex justify-between p-2">
+<div class="card preset-tonal my-6 flex justify-between p-2">
 	<div class="input-group grid-cols-[auto_1fr]">
 		<div class="ig-cell preset-tonal-secondary">
 			<i class="ri-search-line"></i>

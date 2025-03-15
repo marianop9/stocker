@@ -41,13 +41,13 @@
 			id: '/',
 			label: 'Inicio',
 			title: 'Stocker',
-			icon: 'ri-home-4-line'
+			icon: 'ri-home-4-line',
 		},
 		{
 			id: '/products',
 			label: 'Productos',
 			title: 'Productos',
-			icon: 'ri-shirt-line'
+			icon: 'ri-shirt-line',
 		},
 		{
 			id: '/attributes',
@@ -57,25 +57,42 @@
 			children: [
 				{
 					id: '/categories',
-					title: 'Categorias'
+					title: 'Categorias',
 				},
 				{
 					id: '/providers',
-					title: 'Proveedores'
-				}
-			]
-		}
+					title: 'Proveedores',
+				},
+				{
+					id: '/materials',
+					title: 'Materiales',
+				},
+				{
+					id: '/colors',
+					title: 'Colors',
+				},
+				{
+					id: '/sizes',
+					title: 'Talles',
+				},
+			],
+		},
 	];
 
 	function findNestedRouteTitle(currentRoute: string) {
 		const routesWithChildren = routes.filter((r) => r.children?.length);
 
 		for (const parent of routesWithChildren) {
-			const match = parent.children!.find((child) => currentRoute === `${parent.id}${child.id}`);
-			if (match) {
+			if (currentRoute.startsWith(parent.id)) {
 				return parent.title;
 			}
+			// const match = parent.children!.find((child) => currentRoute === `${parent.id}${child.id}`);
+			// if (match) {
+			// 	return parent.title;
+			// }
 		}
+
+		return 'TITLE MISSING';
 	}
 </script>
 
@@ -83,7 +100,9 @@
 	<p>Vuelva a iniciar sesión.</p>
 
 	<div class="flex justify-end">
-		<button class="btn preset-filled" onclick={onSessionExpired}>Continuar</button>
+		<button class="btn preset-filled" onclick={onSessionExpired}
+			>Continuar</button
+		>
 	</div>
 </AppModal>
 
@@ -97,7 +116,9 @@
 				<div>
 					{#each routes as route}
 						<a
-							href={route.children?.length ? route.id.concat(route.children[0].id) : route.id}
+							href={route.children?.length
+								? route.id.concat(route.children[0].id)
+								: route.id}
 							class="hover:bg-surface-600 my-1 flex gap-2 rounded p-2"
 							class:bg-surface-900={page.route.id === route.id}
 						>
@@ -107,7 +128,10 @@
 					{/each}
 				</div>
 
-				<button class="hover:bg-surface-600 my-1 flex gap-2 rounded p-2" onclick={logout}>
+				<button
+					class="hover:bg-surface-600 my-1 flex gap-2 rounded p-2"
+					onclick={logout}
+				>
 					<i class="ri-logout-box-line"></i>
 					<span class="hidden md:block">Salir</span>
 				</button>
@@ -119,8 +143,7 @@
 				{#snippet headline()}
 					<h1 class="h1">
 						{routes.find((r) => r.id === page.route.id)?.title ??
-							findNestedRouteTitle(page.url.pathname) ??
-							'title missing'}
+							findNestedRouteTitle(page.url.pathname)}
 					</h1>
 				{/snippet}
 			</AppBar>

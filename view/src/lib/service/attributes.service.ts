@@ -1,7 +1,9 @@
 import type {
 	Category,
+	Color,
 	ProductAttribute,
 	Provider,
+    Size,
 } from '$lib/models/attributes.model';
 import { _pbService } from '$lib/pocketbase';
 
@@ -38,4 +40,16 @@ export class CategoriesService extends ProductAttributeService<Category> {
 
 export class ProvidersService extends ProductAttributeService<Provider> {
 	readonly collectionName = 'providers';
+}
+
+export class MaterialsService extends ProductAttributeService<Provider> {
+	readonly collectionName = 'materials';
+}
+
+export class ColorsService extends ProductAttributeService<Color> {
+	readonly collectionName = 'colors';
+}
+
+export class SizesService extends ProductAttributeService<Size> {
+	readonly collectionName = 'sizes';
 }

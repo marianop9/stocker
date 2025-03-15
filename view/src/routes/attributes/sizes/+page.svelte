@@ -1,33 +1,37 @@
 <script lang="ts">
 	import AppLoadingIndicator from '$lib/components/AppLoadingIndicator.svelte';
 	import AppModal from '$lib/components/AppModal.svelte';
-	import { Provider } from '$lib/models/attributes.model.js';
-	import { ProvidersService } from '$lib/service/attributes.service';
-	import { onMount } from 'svelte';
+	import { Size } from '$lib/models/attributes.model.js';
+	import { SizesService } from '$lib/service/attributes.service';
+	import { getContext, onMount } from 'svelte';
 	import AttributesTable from '../AttributesTable.svelte';
 	import AttributeSearchBox from '../AttributeSearchBox.svelte';
 	import AttributeUpsertForm from '../AttributeUpsertForm.svelte';
-	import { setServerError } from '../attributesContext.svelte';
+	import {
+		getAttributesContext,
+		setServerError,
+	} from '../attributesContext.svelte';
+	import { decodeServiceException } from '$lib/pocketbase';
 
-	const providersService = new ProvidersService();
+	const sizesService = new SizesService();
 
-	let data: Provider[] = $state([]);
+	let data: Size[] = $state([]);
 	let loading = $state(true);
 
 	onMount(async () => {
-		data = await providersService.list();
+		data = await sizesService.list();
 		loading = false;
 	});
 
 	let filter = $state('');
 	let showEditModal = $state(false);
-	let selected: Provider | null = $state(null);
+	let selected: Size | null = $state(null);
 
 	let filteredList = $derived(
 		data.filter((row) => row.name.toLowerCase().includes(filter.toLowerCase()))
 	);
 
-	function handleFormSubmission(c: Provider) {
+	function handleFormSubmission(c: Size) {
 		if (selected) {
 			const idx = data.indexOf(selected);
 			data[idx] = c;
@@ -42,14 +46,14 @@
 		selected = null;
 	}
 
-	function handleRowClick(c: Provider) {
+	function handleRowClick(c: Size) {
 		selected = c;
 		showEditModal = true;
 	}
 
-	async function handleDelete(c: Provider) {
+	async function handleDelete(c: Size) {
 		try {
-			await providersService.delete(c.id);
+			await sizesService.delete(c.id);
 			const idx = data.indexOf(c);
 			data.splice(idx, 1);
 		} catch (ex) {
@@ -60,16 +64,16 @@
 
 <AppModal
 	bind:showModal={showEditModal}
-	title="Agregar proveedor"
+	title="Agregar color"
 	dismissable={false}
 >
 	<AttributeUpsertForm
 		attribute={selected}
-		attributeService={providersService}
-		buildAttribute={({ id, name, description }) =>
-			new Provider(id, name, description)}
-		onSubmitted={handleFormSubmission}
+		buildAttribute={({ id, name, description }, _) =>
+			new Size(id, name, description)}
+		attributeService={sizesService}
 		onCancel={handleFormClose}
+		onSubmitted={handleFormSubmission}
 	></AttributeUpsertForm>
 </AppModal>
 
@@ -89,5 +93,9 @@
 		data={filteredList}
 		onRowClick={handleRowClick}
 		onDelete={handleDelete}
-	/>
+	>
+		<!-- {#snippet extraColumns(row)}
+			<td>#{row.hexcode}</td>
+		{/snippet} -->
+	</AttributesTable>
 {/if}

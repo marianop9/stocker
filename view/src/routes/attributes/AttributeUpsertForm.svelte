@@ -16,9 +16,11 @@
 	interface Props {
 		attribute: T | null;
 		buildAttribute(
-			id: string,
-			name: string,
-			description: string,
+			attribute: {
+				id: string;
+				name: string;
+				description: string;
+			},
 			form: HTMLFormElement
 		): T;
 		attributeService: S;
@@ -46,12 +48,11 @@
 		const form = e.target as HTMLFormElement;
 		const formData = new FormData(form);
 
-		const newData = buildAttribute(
-			attribute?.id ?? '',
-			formData.get('name') as string,
-			formData.get('description') as string,
-			form
-		);
+		const id = attribute?.id ?? '';
+		const name = formData.get('name') as string;
+		const description = formData.get('description') as string;
+
+		const newData = buildAttribute({ id, name, description }, form);
 
 		try {
 			const result =
@@ -92,8 +93,7 @@
 		></textarea>
 	</AppInputWrapper>
 
-
-    {@render extraFields?.()}
+	{@render extraFields?.()}
 
 	<div class="mt-4 flex justify-end gap-x-1">
 		<button type="button" class="btn" onclick={onCancel}>Cancelar</button>
