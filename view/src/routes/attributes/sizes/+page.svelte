@@ -3,15 +3,13 @@
 	import AppModal from '$lib/components/AppModal.svelte';
 	import { Size } from '$lib/models/attributes.model.js';
 	import { SizesService } from '$lib/service/attributes.service';
-	import { getContext, onMount } from 'svelte';
+	import {  onMount } from 'svelte';
 	import AttributesTable from '../AttributesTable.svelte';
 	import AttributeSearchBox from '../AttributeSearchBox.svelte';
 	import AttributeUpsertForm from '../AttributeUpsertForm.svelte';
 	import {
-		getAttributesContext,
 		setServerError,
 	} from '../attributesContext.svelte';
-	import { decodeServiceException } from '$lib/pocketbase';
 
 	const sizesService = new SizesService();
 
@@ -65,7 +63,7 @@
 <AppModal
 	bind:showModal={showEditModal}
 	title="Agregar color"
-	dismissable={false}
+	nonDismissable
 >
 	<AttributeUpsertForm
 		attribute={selected}

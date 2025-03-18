@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ProductModel } from '$lib/models/product.model';
+	import { formatCurrency } from '$lib/utils/formatters';
 
 	const {
 		product
@@ -26,6 +27,8 @@
 				{product.providerName}
 			</div>
 		</div>
-		<div></div>
+		<div class="place-self-center">
+            {formatCurrency(product.retailPrice)}
+        </div>
 	</div>
 </div>

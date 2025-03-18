@@ -5,24 +5,24 @@
 		showModal = $bindable(false),
 		title,
 		children,
-		dismissable = true
+		nonDismissable = false,
 	}: {
 		showModal: boolean;
 		title: string;
 		children: Snippet;
-		dismissable?: boolean;
+		nonDismissable?: boolean;
 	} = $props();
 
 	let dialog: HTMLDialogElement | undefined = $state(undefined);
 
 	$effect(() => {
-        if (!dialog) return;
+		if (!dialog) return;
 
 		if (showModal) {
 			dialog.showModal();
 		} else if (dialog.open) {
-            dialog.close()
-        }
+			dialog.close();
+		}
 	});
 </script>
 
@@ -31,21 +31,27 @@
 	onclose={() => (showModal = false)}
 	onclick={(e) => {
 		// close when clicking outside the inner div
-		if (dismissable && e.target === dialog) {
+		if (!nonDismissable && e.target === dialog) {
 			dialog.close();
 		}
 	}}
+	class="w-[80%] lg:min-w-[30%] lg:max-w-[40%] bg-surface-100-900"
 >
 	<div>
-		<div class="flex items-center justify-between pb-1">
-            <span class="h4">{title}</span>
-			{#if dismissable}
-				<button class="btn-icon" aria-label="close-dialog" onclick={() => dialog?.close()}>
-					<i class="ri-close-large-line"></i>
-				</button>
-			{/if}
-		</div>
-		<hr />
+		<header class="sticky top-0 z-10 py-2 bg-surface-100-900">
+            <div class="flex items-center justify-between">
+                <span class="h4">{title}</span>
+                {#if !nonDismissable}
+                    <button
+                        class="btn-icon"
+                        aria-label="close-dialog"
+                        onclick={() => dialog?.close()}
+                    >
+                        <i class="ri-close-large-line"></i>
+                    </button>
+                {/if}
+            </div>
+        </header>
 		<div class="pt-4 text-base">
 			{@render children?.()}
 		</div>
@@ -53,15 +59,17 @@
 </dialog>
 
 <style>
+	:global(body:has(dialog[open])) {
+		overflow: hidden;
+	}
 	dialog {
 		position: absolute;
-		max-width: 60%;
-		min-width: 40%;
+		max-height: 80vh;
+		margin: 10vh auto;
 		border-radius: 0.1rem;
 		border: none;
 		padding: 0;
 		font-size: large;
-		margin: 10rem auto 0;
 	}
 	dialog::backdrop {
 		background: rgba(0, 0, 0, 0.3);

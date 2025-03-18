@@ -13,61 +13,73 @@
 
 	let prevFilter = '';
 	let filter = $state('');
-
-	const perPage = 10;
 	let pageNumber = $state(1);
+
 	let totalCount = $state(0);
+	const perPage = 10;
 	// no idea why navigation widget requires a data array, so pass empty array
 	// let products = $stproductsServiceProductModel[]);
 	let products = [] as ProductModel[];
 
+	function fetchData() {
+		data = productsService.list(filter, pageNumber, perPage).then((list) => {
+			totalCount = list.totalItems;
+
+			return list;
+		});
+
+		prevFilter = filter;
+	}
 	/** An effect only depends on the values that it read the last time it ran.
 	 * https://svelte.dev/docs/svelte/$effect#Understanding-dependencies
 	 */
 	$effect(() => {
 		// reset pageNumber on filter change
-		if (prevFilter !== filter) {
+		if (pageNumber > 1 && prevFilter !== filter) {
 			pageNumber = 1;
 		}
-		const page = pageNumber;
-
-		const fetchFn = () => {
-			data = productsService.list(filter, page, perPage).then((list) => {
-				totalCount = list.totalItems;
-				// products = list.items;
-
-				return list;
-			});
-
-			prevFilter = filter;
-		};
-        
-        // debounce filter (if any and only if it changed)
+		// debounce filter (if any and only if it changed)
 		if (filter !== '' && filter !== prevFilter) {
-			const timeoutId = setTimeout(fetchFn, 1000);
+			const timeoutId = setTimeout(fetchData, 1000);
 
 			return () => {
 				clearTimeout(timeoutId);
 			};
 		} else {
-			fetchFn();
+			fetchData();
 		}
 	});
 </script>
 
 <AppModal bind:showModal={showEditModal} title="Agregar producto">
-	<ProductForm />
+	{#if showEditModal}
+		<ProductForm
+			onCancel={() => (showEditModal = false)}
+			onSubmitted={() => {
+                fetchData();
+                showEditModal = false;
+            }}
+		/>
+	{/if}
 </AppModal>
 
-<div class="card preset-tonal-primary text-primary-contrast-500 flex justify-between p-2">
+<div class="card preset-tonal my-4 flex justify-between p-2">
 	<div class="input-group grid-cols-[auto_1fr]">
 		<div class="ig-cell preset-tonal-secondary">
 			<i class="ri-search-line"></i>
 		</div>
-		<input class="ig-input" type="search" placeholder="Buscar..." bind:value={filter} />
+		<input
+			class="ig-input"
+			type="search"
+			placeholder="Buscar..."
+			bind:value={filter}
+		/>
 	</div>
 
-	<button class="btn preset-filled" onclick={() => (showEditModal = true)}>Agregar</button>
+	<button
+		class="btn preset-tonal-primary"
+		onclick={() => (showEditModal = true)}>Agregar</button
+	>
 </div>
 
 {#await data}
@@ -93,4 +105,5 @@
 	onPageChange={({ page }) => {
 		pageNumber = page;
 	}}
+	classes="mt-2"
 />

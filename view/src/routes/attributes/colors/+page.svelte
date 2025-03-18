@@ -61,7 +61,7 @@
 <AppModal
 	bind:showModal={showEditModal}
 	title="Agregar color"
-	dismissable={false}
+	nonDismissable
 >
 	<AttributeUpsertForm
 		attribute={selected}

@@ -9,12 +9,16 @@ interface IProductService {
 	delete(id: string): Promise<void>;
 
 	get(id: string): Promise<ProductModel>;
-	list(filter: string, page: number, perPage: number): Promise<ListResult<ProductModel>>;
+	list(
+		filter: string,
+		page: number,
+		perPage: number
+	): Promise<ListResult<ProductModel>>;
 }
 
 export const productsService: IProductService = {
 	create: function (p: ProductDTO): Promise<ProductDTO> {
-		throw new Error('Function not implemented.');
+		return _pbService.products.create(p);
 	},
 	update: function (p: ProductDTO): Promise<ProductDTO> {
 		throw new Error('Function not implemented.');
@@ -35,5 +39,5 @@ export const productsService: IProductService = {
 		});
 
 		return resp;
-	}
+	},
 };

@@ -61,7 +61,7 @@
 <AppModal
 	bind:showModal={showEditModal}
 	title="Agregar material"
-	dismissable={false}
+	nonDismissable
 >
 	<AttributeUpsertForm
 		attribute={selected}

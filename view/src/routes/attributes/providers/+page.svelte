@@ -61,7 +61,7 @@
 <AppModal
 	bind:showModal={showEditModal}
 	title="Agregar proveedor"
-	dismissable={false}
+	nonDismissable
 >
 	<AttributeUpsertForm
 		attribute={selected}

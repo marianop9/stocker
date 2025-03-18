@@ -61,7 +61,7 @@
 <AppModal
 	bind:showModal={showEditModal}
 	title="Agregar categoria"
-	dismissable={false}
+	nonDismissable
 >
 	<!-- <CategoriesForm
 		category={selected}

@@ -96,7 +96,7 @@
 	}
 </script>
 
-<AppModal showModal={!isAuth} dismissable={false} title="La sesión ha expirado">
+<AppModal showModal={!isAuth} nonDismissable title="La sesión ha expirado">
 	<p>Vuelva a iniciar sesión.</p>
 
 	<div class="flex justify-end">
